@@ -6,7 +6,7 @@ set -euo pipefail
 
 BUCKET="trustdb-scorecard-635298978260"
 REGION="ca-central-1"
-DISTRIBUTION_ID="${CLOUDFRONT_DISTRIBUTION_ID:-}"
+DISTRIBUTION_ID="${CLOUDFRONT_DISTRIBUTION_ID:-E1B8LOFUJINM9E}"
 
 echo "=== Building ==="
 cd "$(dirname "$0")/.."
