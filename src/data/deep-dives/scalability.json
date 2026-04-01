@@ -1,0 +1,184 @@
+{
+  "pillar": "scalability",
+  "pillarName": "Scalability & Architecture",
+  "subtitle": "The Growth Pillar",
+  "overallScore": 6.5,
+  "sections": [
+    {
+      "metric": "horizontalVertical",
+      "metricName": "Horizontal vs Vertical Scaling",
+      "score": 5.5,
+      "status": "adequate",
+      "benchmarks": [
+        {
+          "name": "Vertical Scaling",
+          "value": "Yes (single-node)",
+          "target": "Yes",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "Yes (single-node)" },
+            { "system": "RocksDB", "value": "Yes (single-node)" },
+            { "system": "Neo4j", "value": "Yes + clustering" }
+          ]
+        },
+        {
+          "name": "Horizontal Scaling",
+          "value": "Raft scaffold only",
+          "target": "Production-ready",
+          "met": false,
+          "comparisons": [
+            { "system": "SQLite", "value": "None" },
+            { "system": "CockroachDB", "value": "Auto-sharding + Raft" },
+            { "system": "TiKV", "value": "Auto-sharding + Raft" },
+            { "system": "FoundationDB", "value": "Multi-Paxos" }
+          ]
+        },
+        {
+          "name": "Federation / Multi-Instance",
+          "value": "FWGA implemented — 28 sync tests, 6 manifest tests, 3 async worker tests",
+          "target": "Implemented",
+          "met": true,
+          "source": "PRs #165, #169, #184. DeviceManifest: 5 tiers (Mothership/Regional/Desktop/Mobile/EdgeSensor) with LoR subtree scoping, classification gates, clearance max, section budget, confidence floor. sync_on_reconnect: 6-phase protocol (sweep, delta, reject expired, classify with real clearance from PREFIX_CLEARANCE index, apply with correct routing to PREFIX_SNAPSHOT/PREFIX_CONFLICT_QUEUE, gap manifest filtered through manifest). quorum-as-confidence: canonical_confidence_threshold f64 per type (Well 0.67, Property 0.67) replaces binary quorum. Background SyncWorker: tokio::spawn with reconnect Notify + 30s periodic fallback, failed sessions re-queue writes.",
+          "comparisons": [
+            { "system": "CouchDB", "value": "Multi-master replication (no governance)", "source": "LWW conflict resolution, no CBAC, no device hierarchy" },
+            { "system": "Cassandra", "value": "Multi-DC replication (no confidence)", "source": "Consistent hashing, no epistemic semantics" },
+            { "system": "Realm Sync", "value": "Partition-based sync (no CBAC)", "source": "Developer-defined partitions, no clearance enforcement" }
+          ]
+        }
+      ],
+      "narrative": "TrustDB's scaling model currently matches SQLite for single-node vertical scaling, but the federation layer (FWGA) is now fully implemented and tested. The 5-tier DeviceManifest hierarchy (Mothership/Regional/Desktop/Mobile/EdgeSensor) with clearance-aware sync, quorum-as-confidence thresholds, and governed conflict resolution is a category differentiator \u2014 no competitor combines federated sync with storage-layer CBAC enforcement. CouchDB offers multi-master replication but with last-write-wins and no governance. Cassandra offers multi-DC but with no confidence semantics. The remaining gap: Raft consensus for same-tier horizontal scaling is scaffold only.",
+      "evidence": [
+        { "label": "Replication Module", "path": "trustdb/src/replication/" },
+        { "label": "World Graph Module", "path": "trustdb/src/world_graph/" },
+        { "label": "Sync Operations", "path": "trustdb/src/store/sync_ops.rs" },
+        { "label": "Device Manifest", "path": "trustdb/src/store/device_manifest.rs" }
+      ],
+      "history": [
+        { "date": "2026-03-31", "value": "FWGA implemented", "note": "Chain A wiring + quorum-as-confidence. Federation moves from Designed to Implemented." }
+      ]
+    },
+    {
+      "metric": "dataFootprint",
+      "metricName": "Data Footprint",
+      "score": 8.0,
+      "status": "strong",
+      "benchmarks": [
+        {
+          "name": "Write Amplification Factor",
+          "value": "3.04",
+          "target": "<4.0",
+          "met": true,
+          "comparisons": [
+            { "system": "RocksDB (LSM)", "value": "10\u201330x" },
+            { "system": "SQLite (B-tree)", "value": "1\u20132x" },
+            { "system": "LMDB (CoW)", "value": "1x" }
+          ]
+        },
+        {
+          "name": "Codec Overhead (Bincode)",
+          "value": "3.3%",
+          "target": "<10%",
+          "met": true,
+          "comparisons": [
+            { "system": "JSON encoding", "value": "9.2%", "source": "TrustDB JSON codec" },
+            { "system": "Protobuf", "value": "2\u20135%", "source": "Industry standard" },
+            { "system": "MessagePack", "value": "3\u20138%" }
+          ]
+        },
+        {
+          "name": "Governance Storage Overhead",
+          "value": "3.3% (vs no governance)",
+          "target": "<10%",
+          "met": true,
+          "comparisons": [
+            { "system": "App-layer governance", "value": "163%", "source": "Extra tables, joins, triggers" },
+            { "system": "Advantage", "value": "49x cheaper storage" }
+          ]
+        },
+        {
+          "name": "Insert Scaling Factor (10x data)",
+          "value": "1.53x cost increase",
+          "target": "<2x",
+          "met": true,
+          "comparisons": [
+            { "system": "B-tree (SQLite)", "value": "1.3\u20131.5x", "source": "O(log N) insert" },
+            { "system": "LSM (RocksDB)", "value": "1.0\u20131.2x", "source": "Near-constant write cost" },
+            { "system": "B-\u03b5 theoretical", "value": "1.0\u20131.3x", "source": "O(log_B N / \u03b5B^(1-\u03b5))" }
+          ]
+        }
+      ],
+      "narrative": "Data footprint is strong. WAF of 3.04 sits between LMDB's ideal 1x and RocksDB's compaction-heavy 10\u201330x. The B-\u03b5 tree offers better write amplification than LSM trees at the cost of slightly more reads. Governance metadata adds just 3.3% to storage \u2014 49x cheaper than bolting governance onto a traditional database with extra tables and triggers. Insert scaling at 1.53x for 10x data is close to the B-\u03b5 theoretical optimum.",
+      "evidence": [
+        { "label": "B-\u03b5 Tuning Grid", "path": "Research/TrustDB/tuning-grid-results-2026-03-29.md" },
+        { "label": "Codec Benchmarks", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+      ],
+      "history": [
+        { "date": "2026-03-29", "value": "WAF 3.03-3.04", "note": "Measured across all tuning configs" },
+        { "date": "2026-03-30", "value": "3.3% codec overhead", "note": "Bincode DynamicValue" }
+      ]
+    },
+    {
+      "metric": "elasticity",
+      "metricName": "Elasticity",
+      "score": 4.5,
+      "status": "needs-work",
+      "benchmarks": [
+        {
+          "name": "Online Device Add",
+          "value": "DeviceManifest + sync_with_manifest (zero-downtime join)",
+          "target": "Zero-downtime",
+          "met": true,
+          "source": "PR #169. A new device creates a DeviceManifest (tier, LoR root, clearance max, classification filters), calls sync_with_manifest(), receives a filtered gap manifest (only data matching its scope), syncs, and is operational. No downtime for existing mesh members. Watermark starts at 0 for first sync, persists across sessions.",
+          "comparisons": [
+            { "system": "CockroachDB", "value": "Automatic rebalancing", "source": "Range-based sharding, Raft group membership" },
+            { "system": "Cassandra", "value": "Live node add/remove", "source": "Gossip + consistent hashing" },
+            { "system": "SQLite", "value": "N/A (embedded)", "source": "No multi-instance" }
+          ]
+        },
+        {
+          "name": "Online Device Remove",
+          "value": "Not yet implemented",
+          "target": "Zero-downtime",
+          "met": false,
+          "source": "DeviceManifest can be marked non-writable but no automatic data redistribution or manifest deregistration protocol exists yet.",
+          "comparisons": [
+            { "system": "CockroachDB", "value": "Automatic decommission + rebalance" },
+            { "system": "Cassandra", "value": "nodetool decommission" }
+          ]
+        },
+        {
+          "name": "Automatic Rebalancing",
+          "value": "Not yet implemented",
+          "target": "Automatic",
+          "met": false,
+          "source": "When a device's manifest scope changes (e.g. Regional server takes on a new province), data should auto-flow from Mothership via gap manifest. The mechanism exists (sync_with_manifest + gap manifest) but no automatic trigger for scope changes.",
+          "comparisons": [
+            { "system": "CockroachDB", "value": "Range split/merge + lease rebalance" },
+            { "system": "Cassandra", "value": "Token range reassignment" }
+          ]
+        },
+        {
+          "name": "Read Scaling (flat curve)",
+          "value": "20.2\u219222.5\u00b5s (1x\u219210x data)",
+          "target": "<2x degradation",
+          "met": true,
+          "source": "B-epsilon tree O(log_B N) reads scale near-flat. Measured on SimulatedIo.",
+          "comparisons": [
+            { "system": "B-tree (SQLite)", "value": "~flat (cached)" },
+            { "system": "LSM (RocksDB)", "value": "Depends on level count" }
+          ]
+        }
+      ],
+      "narrative": "Elasticity has improved from 'not applicable' to partially implemented. Online device add is now zero-downtime: a new device creates a DeviceManifest, calls sync_with_manifest, and receives a scope-filtered gap manifest. The mesh dynamically grows without interrupting existing members. Two gaps remain: device removal has no automatic data redistribution protocol, and scope-change rebalancing (a Regional server adding a new province) lacks an automatic trigger. Read scaling remains near-flat (20.2\u00b5s to 22.5\u00b5s for 10x data), confirming the B-epsilon tree handles vertical growth before horizontal is needed.",
+      "evidence": [
+        { "label": "Scaling Benchmarks", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" },
+        { "label": "Device Manifest", "path": "trustdb/src/store/device_manifest.rs" },
+        { "label": "sync_with_manifest", "path": "trustdb/src/store/sync_ops.rs" }
+      ],
+      "history": [
+        { "date": "2026-03-30", "value": "1.53x scaling", "note": "10x data insert scaling factor" },
+        { "date": "2026-03-31", "value": "Online device add", "note": "DeviceManifest + sync_with_manifest zero-downtime join" }
+      ]
+    }
+  ]
+}

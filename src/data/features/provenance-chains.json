@@ -1,0 +1,54 @@
+{
+  "slug": "provenance-chains",
+  "name": "Provenance Chains",
+  "category": "Epistemic Storage",
+  "status": "implemented",
+  "overview": "Every entity in TrustDB carries a ProvenanceChain that tracks who created it, what source it came from, when it was created/modified, and the full chain of transformations. ProvenanceChains are stored inline with LeafEntry data (no joins required), and the Temporal Co-occurrence Index (TCI) auto-records entity co-occurrence patterns for relationship discovery.",
+  "howItWorks": [
+    { "step": "1", "title": "Inline Storage", "description": "ProvenanceChain is embedded directly in the LeafEntry alongside the value and ConfidenceEnvelope. This means reading an entity's provenance requires zero additional lookups \u2014 it arrives with the data itself." },
+    { "step": "2", "title": "Chain Extension", "description": "Each mutation appends a ProvenanceEntry to the chain, recording the actor (user/agent/system), timestamp, operation type, and source reference. The chain is append-only and immutable once written." },
+    { "step": "3", "title": "TCI Auto-Recording", "description": "The Temporal Co-occurrence Index monitors write patterns and automatically records when entities are frequently written together within temporal windows. This builds implicit relationship graphs without explicit edge creation." },
+    { "step": "4", "title": "Zero-Overhead Query", "description": "Since provenance is inline with data, querying 'who created this entity and what was its source?' adds zero I/O overhead. The provenance arrives in the same read that fetches the value." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Provenance Read Overhead",
+      "value": "0 additional I/O",
+      "target": "0 joins",
+      "met": true,
+      "comparisons": [
+        { "system": "W3C PROV (PostgreSQL)", "value": "1-3 additional queries", "source": "Separate provenance tables with foreign keys" },
+        { "system": "Neo4j provenance", "value": "1-2 traversals", "source": "Provenance stored as separate nodes/relationships" }
+      ]
+    },
+    {
+      "name": "Storage Overhead per Entry",
+      "value": "~64-128 bytes",
+      "target": "<256 bytes",
+      "met": true
+    },
+    {
+      "name": "TCI Co-occurrence Detection",
+      "value": "Automatic",
+      "target": "No manual configuration",
+      "met": true
+    }
+  ],
+  "comparisons": {
+    "narrative": "Provenance in traditional systems requires separate tables, graphs, or services that must be joined at query time. TrustDB's inline approach eliminates this join tax entirely. The automatic TCI layer goes further by discovering entity relationships that were never explicitly declared.",
+    "competitors": [
+      { "system": "PostgreSQL + W3C PROV", "approach": "Separate provenance tables conforming to W3C PROV-DM", "limitation": "Requires joins to reconstruct provenance; scales poorly with chain length" },
+      { "system": "Neo4j", "approach": "Provenance as graph nodes with CREATED_BY/DERIVED_FROM edges", "limitation": "Adds graph traversal cost; provenance nodes compete with data nodes for memory" },
+      { "system": "Apache Atlas", "approach": "Centralized metadata governance service", "limitation": "Separate service with network overhead; eventual consistency with data store" },
+      { "system": "OpenLineage", "approach": "Event-based lineage tracking", "limitation": "Pipeline-level lineage only; no per-entity provenance at storage level" }
+    ]
+  },
+  "evidence": [
+    { "label": "ProvenanceChain type", "path": "trustdb/src/primitives/provenance.rs" },
+    { "label": "LeafEntry inline storage", "path": "trustdb/src/tree/leaf.rs" },
+    { "label": "TCI implementation", "path": "trustdb/src/index/tci.rs" },
+    { "label": "Benchmark report", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["confidence-envelopes", "cbac"],
+  "pillarsAffected": ["reliability", "security", "efficiency"]
+}

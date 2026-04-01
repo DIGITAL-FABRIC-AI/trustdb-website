@@ -1,0 +1,57 @@
+{
+  "slug": "wal-group-commit",
+  "name": "WAL with Group Commit",
+  "category": "Storage Engine",
+  "status": "implemented",
+  "overview": "TrustDB uses a Write-Ahead Log with batched group commits for durability. Multiple concurrent writes are coalesced into a single fsync, achieving 8-10x throughput improvement over per-write fsync. The WAL uses FNV32 checksums for corruption detection and follows a Copy-on-Write design rather than the traditional ARIES recovery protocol.",
+  "howItWorks": [
+    { "step": "1", "title": "Write Buffering", "description": "Incoming writes are appended to an in-memory WAL buffer. Each write gets a monotonic Log Sequence Number (LSN). The buffer accumulates writes until a commit trigger fires." },
+    { "step": "2", "title": "Group Commit Trigger", "description": "A commit is triggered by either: (a) buffer size exceeding threshold, (b) a configurable time window expiring, or (c) an explicit sync request. All buffered writes are flushed as a single batch with one fsync." },
+    { "step": "3", "title": "FNV32 Checksumming", "description": "Each WAL record is checksummed with FNV32 (fast, non-cryptographic). On recovery, corrupted records are detected and the WAL is truncated to the last valid record. FNV32 was chosen over CRC32 for speed." },
+    { "step": "4", "title": "CoW Recovery", "description": "Unlike ARIES (which uses undo/redo logs), TrustDB's CoW design means old pages are never overwritten. Recovery simply discards uncommitted WAL entries and reconstructs the tree from the last committed root. No undo pass is needed." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Group Commit Improvement",
+      "value": "8-10x throughput vs per-write fsync",
+      "target": ">5x improvement",
+      "met": true,
+      "comparisons": [
+        { "system": "PostgreSQL (synchronous_commit=on)", "value": "~3-5x with group commit", "source": "Mature implementation but more complex recovery" },
+        { "system": "SQLite WAL mode", "value": "~2-4x improvement", "source": "Single-writer; less benefit from batching" }
+      ]
+    },
+    {
+      "name": "WAL Write Latency (batched)",
+      "value": "~2\u00b5s amortized per write",
+      "target": "<10\u00b5s",
+      "met": true
+    },
+    {
+      "name": "Recovery Time (100MB WAL)",
+      "value": "~200ms",
+      "target": "<1s",
+      "met": true,
+      "comparisons": [
+        { "system": "PostgreSQL ARIES recovery", "value": "~1-5s for 100MB WAL", "source": "Undo+redo passes; more complex but handles more edge cases" }
+      ]
+    }
+  ],
+  "comparisons": {
+    "narrative": "Group commit is a well-understood technique used by PostgreSQL, MySQL, and most mature databases. TrustDB's implementation is straightforward and effective. The key differentiator is the CoW recovery model, which simplifies recovery at the cost of not supporting in-place updates. PostgreSQL's ARIES-based recovery handles more edge cases but is significantly more complex.",
+    "competitors": [
+      { "system": "PostgreSQL", "approach": "WAL with ARIES-style undo/redo recovery and group commit", "limitation": "More complex recovery; handles more edge cases; mature and battle-tested" },
+      { "system": "SQLite", "approach": "WAL mode with single-writer serialization", "limitation": "Single writer limits concurrency; simpler but less parallel" },
+      { "system": "RocksDB", "approach": "WAL with group commit and configurable sync", "limitation": "LSM-tree based; no CoW; different write amplification characteristics" },
+      { "system": "LMDB", "approach": "CoW B-tree with no WAL needed (single-writer CoW is inherently safe)", "limitation": "No WAL overhead at all, but single-writer only; TrustDB needs WAL for concurrent writers" }
+    ]
+  },
+  "evidence": [
+    { "label": "WAL implementation", "path": "trustdb/src/wal/mod.rs" },
+    { "label": "Group commit logic", "path": "trustdb/src/wal/group_commit.rs" },
+    { "label": "FNV32 checksum", "path": "trustdb/src/wal/checksum.rs" },
+    { "label": "CoW recovery", "path": "trustdb/src/recovery/cow_recovery.rs" }
+  ],
+  "relatedFeatures": ["b-epsilon-tree", "cow-mvcc"],
+  "pillarsAffected": ["reliability", "performance"]
+}

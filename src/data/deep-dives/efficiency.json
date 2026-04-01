@@ -1,0 +1,358 @@
+{
+  "pillar": "efficiency",
+  "pillarName": "Efficiency & Cost",
+  "subtitle": "The ROI Pillar",
+  "overallScore": 9.4,
+  "sections": [
+    {
+      "metric": "resourceUtilization",
+      "metricName": "Resource Utilization",
+      "score": 9.0,
+      "status": "excellent",
+      "benchmarks": [
+        {
+          "name": "Write Amplification Factor",
+          "value": "3.04",
+          "target": "<4.0",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "RocksDB (LSM)",
+              "value": "10–30x",
+              "source": "Compaction-heavy workloads"
+            },
+            {
+              "system": "SQLite",
+              "value": "1–2x",
+              "source": "B-tree, minimal amplification"
+            },
+            {
+              "system": "LMDB",
+              "value": "1x",
+              "source": "CoW, no compaction"
+            }
+          ]
+        },
+        {
+          "name": "Governance Overhead (codec)",
+          "value": "3.3% (Bincode)",
+          "target": "<10%",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "App-layer governance",
+              "value": "163%",
+              "source": "SQLite + application validation"
+            },
+            {
+              "system": "Reduction factor",
+              "value": "49x cheaper"
+            }
+          ]
+        },
+        {
+          "name": "Confidence Write Overhead",
+          "value": "+28%",
+          "target": "<50%",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "App-layer confidence",
+              "value": "+200–500%",
+              "source": "Extra DB queries + computation"
+            }
+          ]
+        },
+        {
+          "name": "Zone Map Pruning (GEMVT)",
+          "value": "Active",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "RocksDB",
+              "value": "Bloom filters"
+            },
+            {
+              "system": "PostgreSQL",
+              "value": "BRIN indexes"
+            },
+            {
+              "system": "Parquet",
+              "value": "Min/max statistics"
+            }
+          ]
+        },
+        {
+          "name": "NVM Resource Optimization",
+          "value": "Active",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "Two-region mmap (hot/cold)",
+              "value": "15–25mW idle savings",
+              "source": "LPDDR5X PASR bank idling via separated hot/cold regions"
+            },
+            {
+              "system": "Write coalescer",
+              "value": "8–10x CAS reduction",
+              "source": "Per-thread coalescing at 90% ratio for hot-key workloads"
+            },
+            {
+              "system": "Adaptive config",
+              "value": "41x scan improvement",
+              "source": "Auto Point-Hot/Scan-Hot switching; -35% point trade-off acceptable"
+            },
+            {
+              "system": "mmap hints",
+              "value": "THP + prefault",
+              "source": "MADV_HUGEPAGE for cold region, MADV_RANDOM for hot, MADV_WILLNEED prefault"
+            }
+          ]
+        }
+      ],
+      "narrative": "TrustDB's WAF of 3.04 is between LMDB (1x, no compaction) and RocksDB (10–30x in compaction-heavy workloads). The B-ε tree design gives better write amplification than LSM trees at the cost of slightly worse read amplification. The standout metric: governance overhead at 3.3% vs 163% for app-layer enforcement. This means TrustDB's built-in confidence tracking, provenance, and temporal decay cost 49x less than bolting the same capabilities onto a traditional database. The NVM layer adds two-region mmap for LPDDR5X PASR bank idling (15–25mW idle savings), a per-thread write coalescer achieving 8–10x fewer CAS operations, and adaptive config switching that delivers 41x range scan improvement while trading only 35% on point lookups. mmap hints (THP, MADV_RANDOM, prefault) further optimize memory access patterns.",
+      "evidence": [
+        {
+          "label": "GEMVT Implementation",
+          "path": "trustdb/src/tree/"
+        },
+        {
+          "label": "Codec Benchmarks",
+          "path": "Research/TrustDB/trustdb_final_benchmark_report.md"
+        }
+      ],
+      "history": []
+    },
+    {
+      "metric": "powerConsumption",
+      "metricName": "Power Consumption",
+      "score": 9.8,
+      "status": "excellent",
+      "benchmarks": [
+        {
+          "name": "CPU Power (QoS:BACKGROUND)",
+          "value": "384 mW",
+          "target": "<500 mW",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "SQLite WAL+NORMAL",
+              "value": "3,995 mW",
+              "source": "Same Apple Silicon hardware"
+            },
+            {
+              "system": "Reduction",
+              "value": "9.1x lower than SQLite"
+            }
+          ]
+        },
+        {
+          "name": "Delta Over Idle",
+          "value": "157 mW",
+          "target": "<300 mW",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "SQLite delta",
+              "value": "3,896 mW",
+              "source": "CPU power minus idle baseline"
+            },
+            {
+              "system": "Reduction",
+              "value": "24.8x lower incremental cost"
+            }
+          ]
+        },
+        {
+          "name": "E-Core Pinning (QoS class)",
+          "value": "Active (pthread QOS_CLASS_BACKGROUND)",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "SQLite",
+              "value": "No QoS awareness"
+            },
+            {
+              "system": "RocksDB",
+              "value": "No QoS awareness"
+            },
+            {
+              "system": "Core Data",
+              "value": "No explicit QoS control"
+            }
+          ]
+        },
+        {
+          "name": "NVM Energy Profile",
+          "value": "3,000x storage energy reduction",
+          "target": "<10x",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "Tier 1 dc cvap",
+              "value": "~0mW storage I/O",
+              "source": "CPU cache flush to DRAM only, NVMe stays asleep"
+            },
+            {
+              "system": "Tier 2 msync",
+              "value": "~200mW burst",
+              "source": "Periodic msync at adaptive intervals (5ms–500ms)"
+            },
+            {
+              "system": "LPSR preservation",
+              "value": "3,000x storage energy",
+              "source": "Epoch batching keeps NVMe in low-power sleep state"
+            },
+            {
+              "system": "BatteryStateMonitor",
+              "value": "5ms–∞ adaptive",
+              "source": "5ms charging, 500ms low battery, disabled in Low Power Mode"
+            }
+          ]
+        }
+      ],
+      "narrative": "This is TrustDB's most dramatic advantage. On Apple Silicon, QoS-based E-core pinning achieves 9.1x lower CPU power than SQLite WAL+NORMAL at comparable durability. The incremental power cost (delta over idle) is 24.8x lower. No competitor database has explicit Apple Silicon QoS integration — SQLite, RocksDB, and Core Data all run on whatever cores the OS scheduler assigns. This makes TrustDB uniquely viable for always-on edge/IoT deployments and extends battery life on laptops/phones. The NVM persistence engine extends this advantage dramatically: Tier 1 dc cvap flushes cost ~0mW in storage I/O (CPU cache to DRAM only), while epoch batching via LPSR preservation delivers a 3,000x storage energy reduction by keeping NVMe asleep. The BatteryStateMonitor adapts Tier 2 intervals from 5ms (charging) to infinity (Low Power Mode disabled), and confidence-weighted persistence keeps speculative data in DRAM only.",
+      "evidence": [
+        {
+          "label": "NVM Power Analysis",
+          "path": "wikai-core/crates/trustdb-nvm/"
+        },
+        {
+          "label": "Apple Silicon Benchmark Handoff",
+          "path": "Research/TrustDB/MACBOOK-BENCHMARK-HANDOFF.md"
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-03-29",
+          "value": "2,613 mW",
+          "note": "Tier 2 unpinned baseline"
+        },
+        {
+          "date": "2026-03-29",
+          "value": "437 mW",
+          "note": "Tier 2 + QoS:BACKGROUND"
+        },
+        {
+          "date": "2026-03-29",
+          "value": "384 mW",
+          "note": "Tier 1 + QoS:BACKGROUND (optimal)"
+        }
+      ]
+    },
+    {
+      "metric": "tco",
+      "metricName": "Total Cost of Ownership",
+      "score": 9.3,
+      "status": "excellent",
+      "benchmarks": [
+        {
+          "name": "License Cost",
+          "value": "$0 (open-core)",
+          "target": "Free/open",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "SQLite",
+              "value": "$0 (public domain)"
+            },
+            {
+              "system": "Neo4j Enterprise",
+              "value": "$50–200K/yr"
+            },
+            {
+              "system": "Elasticsearch",
+              "value": "$0–$200K/yr",
+              "source": "OSS to Enterprise"
+            }
+          ]
+        },
+        {
+          "name": "Infrastructure (server)",
+          "value": "None (embedded)",
+          "target": "Minimal",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "SQLite",
+              "value": "None (embedded)"
+            },
+            {
+              "system": "Neo4j",
+              "value": "$500–5K/mo",
+              "source": "Cloud instance"
+            },
+            {
+              "system": "Elasticsearch",
+              "value": "$200–2K/mo",
+              "source": "Cloud instance"
+            }
+          ]
+        },
+        {
+          "name": "Systems Replaced",
+          "value": "3 (PostGIS + Neo4j + ES)",
+          "target": "≥2",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "3-system stack cost",
+              "value": "$1–10K/mo",
+              "source": "Cloud hosting + licensing"
+            },
+            {
+              "system": "Operational overhead",
+              "value": "3x monitoring, 3x backups, 3x upgrades"
+            }
+          ]
+        },
+        {
+          "name": "Serialization Overhead",
+          "value": "Zero (in-process)",
+          "target": "Zero",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "Multi-system",
+              "value": "JSON/Protobuf per hop",
+              "source": "Serialization + network latency"
+            }
+          ]
+        },
+        {
+          "name": "Cloud Infrastructure",
+          "value": "20% cost reduction",
+          "target": "<baseline",
+          "met": true,
+          "comparisons": [
+            {
+              "system": "Graviton ARM64 Fargate",
+              "value": "20% cost + 30% perf",
+              "source": "ARM64 migration from x86_64 Fargate (deployed)"
+            },
+            {
+              "system": "Windows NUMA optimization",
+              "value": "VirtualLock + NUMA alloc",
+              "source": "VirtualAllocExNuma for NUMA-aware memory, VirtualLock for page pinning"
+            }
+          ]
+        }
+      ],
+      "narrative": "TCO is exceptional when compared to the multi-system stack TrustDB replaces. A PostGIS + Neo4j + Elasticsearch stack costs $1–10K/month in cloud hosting plus licensing, plus 3x the operational burden (monitoring, backups, schema migrations, version upgrades). TrustDB replaces all three with zero licensing, zero server infrastructure, and zero serialization overhead. The catch: it requires Rust expertise, which is a higher-cost engineering resource than SQL/Cypher developers. Cloud infrastructure costs are further reduced by the Graviton ARM64 Fargate migration (20% cost reduction with 30% performance improvement), and Windows desktop deployments benefit from VirtualLock page pinning and NUMA-aware allocation via VirtualAllocExNuma.",
+      "evidence": [
+        {
+          "label": "DynamicValue Codec Benchmarks",
+          "path": "Research/TrustDB/trustdb_final_benchmark_report.md"
+        },
+        {
+          "label": "Cross-Modal Analysis",
+          "path": "Research/TrustDB/TrustDB-vs-Graph-Databases"
+        }
+      ],
+      "history": []
+    }
+  ]
+}

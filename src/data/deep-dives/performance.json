@@ -1,0 +1,309 @@
+{
+  "pillar": "performance",
+  "pillarName": "Performance",
+  "subtitle": "The Speed & Volume Pillar",
+  "overallScore": 7.8,
+  "sections": [
+    {
+      "metric": "latency",
+      "metricName": "Latency",
+      "score": 8.5,
+      "status": "strong",
+      "benchmarks": [
+        {
+          "name": "Point Write",
+          "value": "19.2\u00b5s",
+          "target": "<20\u00b5s",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "10\u201320\u00b5s" },
+            { "system": "RocksDB", "value": "5\u201315\u00b5s" },
+            { "system": "LMDB", "value": "2\u20135\u00b5s" }
+          ]
+        },
+        {
+          "name": "Point Read (1K store)",
+          "value": "22.1\u00b5s",
+          "target": "<25\u00b5s",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "5\u201315\u00b5s" },
+            { "system": "RocksDB", "value": "3\u201310\u00b5s" },
+            { "system": "LMDB", "value": "1\u20133\u00b5s" }
+          ]
+        },
+        {
+          "name": "Batch Write 100",
+          "value": "940\u00b5s",
+          "target": "<2ms",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "1\u20132ms" },
+            { "system": "RocksDB", "value": "0.5\u20131.5ms" }
+          ]
+        },
+        {
+          "name": "Range Scan 1K keys",
+          "value": "469\u00b5s",
+          "target": "<1ms",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "200\u2013500\u00b5s" },
+            { "system": "RocksDB", "value": "100\u2013400\u00b5s" }
+          ]
+        },
+        {
+          "name": "Cross-Modal Full Onboarding (KV+Graph+GIS+Search)",
+          "value": "182\u00b5s",
+          "target": "<500\u00b5s",
+          "met": true,
+          "comparisons": [
+            { "system": "PostGIS+Neo4j+ES", "value": "15\u201360ms", "source": "3 network hops + serialization" },
+            { "system": "Single-system equiv.", "value": "N/A", "source": "No single system does all 4" }
+          ]
+        },
+        {
+          "name": "TDQP Decay Eval",
+          "value": "6.67ns",
+          "target": "<10ns",
+          "met": true,
+          "comparisons": [
+            { "system": "App-layer decay", "value": "1\u201310\u00b5s", "source": "Typical per-read computation" }
+          ]
+        },
+        {
+          "name": "RRMS Reinforced Decay",
+          "value": "10.3ns",
+          "target": "<20ns",
+          "met": true,
+          "comparisons": [
+            { "system": "App-layer equivalent", "value": "5\u201350\u00b5s", "source": "DB round-trip + compute" }
+          ]
+        }
+      ],
+      "narrative": "Latency measured on SimulatedIo backend (in-memory). Point operations are in the same ballpark as SQLite (~10\u201320\u00b5s write) and approaching RocksDB (~5\u201315\u00b5s write), which is notable because TrustDB carries governance metadata (confidence, provenance) that those systems don't. The standout is cross-modal full onboarding at 182\u00b5s \u2014 a query spanning KV, Graph, GIS, and Search that would take 15\u201360ms on a traditional 3-system stack due to network hops and serialization between PostGIS, Neo4j, and Elasticsearch. Temporal decay evaluation at 150M evals/sec is 100\u20131000x faster than app-layer equivalents.",
+      "evidence": [
+        { "label": "Final Benchmark Report", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" },
+        { "label": "Criterion Benchmarks", "path": "trustdb/benches/" },
+        { "label": "DB-Gym Harness", "path": "wikai-core/crates/trustdb_gym/" }
+      ],
+      "history": [
+        { "date": "2026-03-28", "value": "87.1\u00b5s/entity", "note": "Phase 1 PoC (store insert)" },
+        { "date": "2026-03-29", "value": "~40\u00b5s/entity", "note": "Phase 3 flush_threshold fix" },
+        { "date": "2026-03-30", "value": "19.2\u00b5s", "note": "Phase 3 final (point write)" }
+      ]
+    },
+    {
+      "metric": "throughput",
+      "metricName": "Throughput",
+      "score": 8.0,
+      "status": "strong",
+      "benchmarks": [
+        {
+          "name": "Point Write IOPS",
+          "value": "52,100 ops/s",
+          "target": ">40K",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite WAL", "value": "50\u2013100K ops/s" },
+            { "system": "RocksDB", "value": "100\u2013300K ops/s" },
+            { "system": "LMDB", "value": "200\u2013500K ops/s" }
+          ]
+        },
+        {
+          "name": "Point Read IOPS",
+          "value": "45,200 ops/s",
+          "target": ">40K",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "100\u2013500K ops/s" },
+            { "system": "RocksDB", "value": "200K\u20131M ops/s" },
+            { "system": "LMDB", "value": "500K\u20132M ops/s" }
+          ]
+        },
+        {
+          "name": "Batch Write 100 IOPS",
+          "value": "106,400 ops/s",
+          "target": ">80K",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite batch", "value": "80\u2013150K ops/s" },
+            { "system": "RocksDB batch", "value": "200\u2013500K ops/s" }
+          ]
+        },
+        {
+          "name": "CWBM25 Search (1K sections)",
+          "value": "1,095/s",
+          "target": ">500",
+          "met": true,
+          "comparisons": [
+            { "system": "Elasticsearch", "value": "1\u20135K qps", "source": "Single node, warm cache" },
+            { "system": "Tantivy (Rust)", "value": "5\u201320K qps" }
+          ]
+        },
+        {
+          "name": "Edge Create",
+          "value": "47,600 edges/s",
+          "target": ">30K",
+          "met": true,
+          "comparisons": [
+            { "system": "Neo4j", "value": "10\u201350K edges/s", "source": "Community edition, single node" },
+            { "system": "DGraph", "value": "50\u2013100K edges/s" }
+          ]
+        },
+        {
+          "name": "FileIo (optimal NVMe tuning)",
+          "value": "8,616 ops/s",
+          "target": ">7K",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite WAL+NORMAL", "value": "10\u201330K ops/s", "source": "NVMe, fsync" },
+            { "system": "RocksDB (default)", "value": "20\u201380K ops/s", "source": "NVMe, sync WAL" }
+          ]
+        }
+      ],
+      "narrative": "TrustDB's SimulatedIo throughput is solid but not yet matching mature engines like RocksDB or LMDB on raw IOPS \u2014 expected given the governance overhead per operation. The real story is FileIo: 8,616 ops/s on NVMe is competitive with SQLite WAL+NORMAL when you factor in that every TrustDB write also carries confidence metadata, provenance chains, and temporal decay parameters. Batch amortization is excellent at 106K effective ops/s. Graph edge creation at 47K/s is competitive with Neo4j Community.",
+      "evidence": [
+        { "label": "B-\u03b5 Tuning Grid", "path": "Research/TrustDB/tuning-grid-results-2026-03-29.md" },
+        { "label": "Final Benchmark Report", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+      ],
+      "history": [
+        { "date": "2026-03-28", "value": "12,000 ops/s", "note": "Phase 1 sequential insert" },
+        { "date": "2026-03-29", "value": "8,616 ops/s", "note": "FileIo optimal tuning" },
+        { "date": "2026-03-30", "value": "52,100 ops/s", "note": "SimulatedIo point write" }
+      ]
+    },
+    {
+      "metric": "concurrency",
+      "metricName": "Concurrency",
+      "score": 5.5,
+      "status": "adequate",
+      "benchmarks": [
+        {
+          "name": "Read Concurrency Model",
+          "value": "Lock-free (CoW)",
+          "target": "Lock-free reads",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "WAL readers (lock-free)" },
+            { "system": "RocksDB", "value": "Lock-free snapshots" },
+            { "system": "Neo4j", "value": "MVCC readers" }
+          ]
+        },
+        {
+          "name": "Write Concurrency",
+          "value": "Single-writer",
+          "target": "Multi-writer",
+          "met": false,
+          "comparisons": [
+            { "system": "SQLite", "value": "Single-writer" },
+            { "system": "RocksDB", "value": "Concurrent writers" },
+            { "system": "Neo4j", "value": "Concurrent writers" }
+          ]
+        },
+        {
+          "name": "Isolation Level",
+          "value": "Serializable (SSI)",
+          "target": "Serializable",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "Serializable" },
+            { "system": "RocksDB", "value": "Snapshot" },
+            { "system": "Neo4j", "value": "Read Committed" }
+          ]
+        }
+      ],
+      "narrative": "TrustDB's concurrency model mirrors SQLite's: single-writer with lock-free readers via CoW snapshots. This is adequate for embedded use but limits write throughput under concurrent load. Notable: TrustDB provides Serializable isolation (stronger than Neo4j's Read Committed), while RocksDB offers concurrent writers but weaker snapshot isolation. The single-writer constraint is a known gap \u2014 multi-writer is on the roadmap.",
+      "evidence": [
+        { "label": "Concurrency Module", "path": "trustdb/src/concurrency/" },
+        { "label": "Transaction Module", "path": "trustdb/src/tx/" }
+      ],
+      "history": [
+        { "date": "2026-03-27", "value": "Single-writer SSI", "note": "Core concurrency model" },
+        { "date": "2026-03-28", "value": "EpochGuard built", "note": "GC mechanism ready" }
+      ]
+    },
+    {
+      "metric": "queryEfficiency",
+      "metricName": "Query Efficiency",
+      "score": 9.0,
+      "status": "excellent",
+      "benchmarks": [
+        {
+          "name": "spatial_then_graph",
+          "value": "1.96ms",
+          "target": "<5ms",
+          "met": true,
+          "comparisons": [
+            { "system": "PostGIS \u2192 Neo4j", "value": "10\u201330ms", "source": "Network hop + serialization" }
+          ]
+        },
+        {
+          "name": "graph_then_search",
+          "value": "1.05ms",
+          "target": "<5ms",
+          "met": true,
+          "comparisons": [
+            { "system": "Neo4j \u2192 ES", "value": "8\u201325ms", "source": "Network hop + JSON parse" }
+          ]
+        },
+        {
+          "name": "cascade_then_spatial",
+          "value": "7.03\u00b5s",
+          "target": "<100\u00b5s",
+          "met": true,
+          "comparisons": [
+            { "system": "App-layer cascade + PostGIS", "value": "5\u201320ms" }
+          ]
+        },
+        {
+          "name": "full_well_onboarding (4 modalities)",
+          "value": "182\u00b5s",
+          "target": "<1ms",
+          "met": true,
+          "comparisons": [
+            { "system": "PostGIS+Neo4j+ES stack", "value": "15\u201360ms", "source": "3 hops, 3 serializations" },
+            { "system": "Reduction factor", "value": "82\u2013330x faster" }
+          ]
+        },
+        {
+          "name": "GeoHash3D Encode",
+          "value": "34.7ns",
+          "target": "<100ns",
+          "met": true,
+          "comparisons": [
+            { "system": "PostGIS ST_GeoHash", "value": "1\u20135\u00b5s", "source": "SQL function overhead" },
+            { "system": "H3 (Uber)", "value": "50\u2013200ns" }
+          ]
+        },
+        {
+          "name": "Jurisdiction Lookup (100pts)",
+          "value": "1.63\u00b5s",
+          "target": "<10\u00b5s",
+          "met": true,
+          "comparisons": [
+            { "system": "PostGIS ST_Contains", "value": "100\u2013500\u00b5s", "source": "Per point, indexed" }
+          ]
+        },
+        {
+          "name": "Typed Edge Filter (10/40 match)",
+          "value": "176\u00b5s",
+          "target": "<500\u00b5s",
+          "met": true,
+          "comparisons": [
+            { "system": "Neo4j type filter", "value": "200\u2013800\u00b5s", "source": "Cypher, warm cache" }
+          ]
+        }
+      ],
+      "narrative": "This is TrustDB's defining advantage. Cross-modal queries that span KV, Graph, GIS, and Search execute 82\u2013330x faster than equivalent multi-system stacks because there are zero network hops and zero serialization boundaries. GeoHash3D at 35ns is 30\u2013140x faster than PostGIS SQL functions. Jurisdiction lookup at 1.63\u00b5s for 100 points is 60\u2013300x faster than PostGIS ST_Contains. The gap exists because TrustDB operates on native in-process data structures while traditional stacks cross process/network boundaries.",
+      "evidence": [
+        { "label": "Cross-Modal Benchmarks", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" },
+        { "label": "PostGIS vs TrustDB", "path": "Research/TrustDB/postgis_vs_trustdb" }
+      ],
+      "history": [
+        { "date": "2026-03-28", "value": "240K ops/s", "note": "Section batch read baseline" },
+        { "date": "2026-03-30", "value": "182\u00b5s", "note": "Full 4-modality onboarding" }
+      ]
+    }
+  ]
+}

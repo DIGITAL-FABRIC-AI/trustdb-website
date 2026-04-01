@@ -1,0 +1,365 @@
+{
+  "categories": [
+    {
+      "name": "Storage Engine Core",
+      "items": [
+        {
+          "title": "EpochGuard integration into flush path",
+          "status": "planned",
+          "priority": "high",
+          "description": "Wire page reclamation into production flush. Pages currently grow without bound on FileIo. collect_freeable() exists but not invoked.",
+          "pillarsAffected": [
+            "performance",
+            "efficiency"
+          ]
+        },
+        {
+          "title": "Custom page cache tuning",
+          "status": "planned",
+          "priority": "high",
+          "description": "LRU cache exists but needs optimization per Gemini review. Most significant missing piece for production perf.",
+          "pillarsAffected": [
+            "performance"
+          ]
+        },
+        {
+          "title": "Data page CRC32c checksums",
+          "status": "planned",
+          "priority": "medium",
+          "description": "WAL pages checksummed (FNV32), data pages not yet. Add CRC32c via crc32fast crate for silent corruption detection.",
+          "pillarsAffected": [
+            "reliability"
+          ]
+        },
+        {
+          "title": "Multi-writer concurrency",
+          "status": "idea",
+          "priority": "medium",
+          "description": "Current SSI is single-writer. Evaluate partitioned writers or optimistic concurrency for higher write throughput.",
+          "pillarsAffected": [
+            "performance",
+            "scalability"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Epistemic & Governance",
+      "items": [
+        {
+          "title": "Wire standalone modules into store",
+          "status": "planned",
+          "priority": "high",
+          "description": "12 modules built and tested but not yet integrated: 5-Vertex, Domain Decay, Stigmergic, HAPC, EPIC, REWG, SCD, CBQ, TER, EBA, and more.",
+          "pillarsAffected": [
+            "performance",
+            "reliability"
+          ]
+        },
+        {
+          "title": "CBAC (Confidence-Based Access Control)",
+          "status": "planned",
+          "priority": "high",
+          "description": "Implement JRGM-derived governance traversal for access control. Entities exist before governance, auth accretes via CBAC spectrum.",
+          "pillarsAffected": [
+            "security"
+          ]
+        },
+        {
+          "title": "Confidence-Aware Learning Index",
+          "status": "idea",
+          "priority": "medium",
+          "description": "Replace B-epsilon lookup with learned index that incorporates confidence distribution. Research complete, implementation pending.",
+          "pillarsAffected": [
+            "performance",
+            "efficiency"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Security & Encryption",
+      "items": [
+        {
+          "title": "Encryption at rest",
+          "status": "planned",
+          "priority": "high",
+          "description": "AES-256 page-level encryption for on-disk data. Key management via platform integration.",
+          "pillarsAffected": [
+            "security"
+          ]
+        },
+        {
+          "title": "Encryption in transit (TEP)",
+          "status": "planned",
+          "priority": "medium",
+          "description": "TrustDB Exchange Protocol with TLS for world graph sync and client connections.",
+          "pillarsAffected": [
+            "security",
+            "connectivity"
+          ]
+        },
+        {
+          "title": "Full audit log export",
+          "status": "idea",
+          "priority": "low",
+          "description": "Temporal log scan_temporal_window for administrative exports and compliance reporting.",
+          "pillarsAffected": [
+            "security",
+            "reliability"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Scalability & Replication",
+      "items": [
+        {
+          "title": "Raft consensus production-ready",
+          "status": "planned",
+          "priority": "medium",
+          "description": "Raft scaffold built. Needs leader election, log compaction, and snapshot transfer for production use.",
+          "pillarsAffected": [
+            "scalability",
+            "reliability"
+          ]
+        },
+        {
+          "title": "World graph federation (FWGA)",
+          "status": "idea",
+          "priority": "medium",
+          "description": "Federated world graph anchoring for cross-instance knowledge sharing. 4-phase offline sync protocol designed.",
+          "pillarsAffected": [
+            "scalability",
+            "connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Connectivity & Ecosystem",
+      "items": [
+        {
+          "title": "TEP Lane A: Semantic Foundation",
+          "status": "complete",
+          "priority": "high",
+          "description": "View<T>, EBP, AssertionMeta, SyncEnvelope/SyncDelta, GovernanceArtifact. 5 files, 2,185 LOC, 51 tests. WN-TEP-01 through WN-TEP-05.",
+          "pillarsAffected": [
+            "connectivity"
+          ],
+          "scoreImpact": "Protocol 5.0 → 5.5"
+        },
+        {
+          "title": "TEP Lane B: Lens API (WN-TEP-06 to 09)",
+          "status": "planned",
+          "priority": "high",
+          "description": "Lens core type, composition algebra, compilation to TraversalPlan, serialization as GovernanceArtifact. The governed query engine.",
+          "pillarsAffected": [
+            "connectivity"
+          ],
+          "scoreImpact": "Protocol +0.7 (to ~6.2)"
+        },
+        {
+          "title": "TEP Lane C: Mesh Sync Protocol (WN-TEP-10 to 14)",
+          "status": "planned",
+          "priority": "high",
+          "description": "4-phase sync (watermark delta, conflict classification, confidence restoration, gap manifest) + Lens-filtered change streams. Serves Mesh agent topology and Apple cross-device.",
+          "pillarsAffected": [
+            "connectivity",
+            "scalability"
+          ],
+          "scoreImpact": "Protocol +0.3, Scalability indirect"
+        },
+        {
+          "title": "TEP Lane D: In-Process API (WN-TEP-15 to 17)",
+          "status": "planned",
+          "priority": "high",
+          "description": "TrustExchange trait, store integration, HintBatch. The canonical zero-copy Rust API that all other surfaces project from.",
+          "pillarsAffected": [
+            "connectivity"
+          ],
+          "scoreImpact": "Protocol +0.8 (to ~7.0)"
+        },
+        {
+          "title": "TEP Lane E: Wire Protocol (WN-TEP-18 to 21)",
+          "status": "planned",
+          "priority": "high",
+          "description": "Protobuf schemas, gRPC service (QueryLens/Assert/Subscribe/Sync), Arrow Flight adapter, Arrow Flight SQL compatibility. External access for Polars, DuckDB, Tableau.",
+          "pillarsAffected": [
+            "connectivity"
+          ],
+          "scoreImpact": "Protocol +1.5 (to ~8.5)"
+        },
+        {
+          "title": "Python driver (PyO3 + Lens/TEP)",
+          "status": "planned",
+          "priority": "high",
+          "description": "Native Python bindings via PyO3 exposing Lens API, View<T>, EBP. Critical for data science and ML pipeline integration.",
+          "pillarsAffected": [
+            "connectivity"
+          ],
+          "scoreImpact": "Drivers +2.5"
+        },
+        {
+          "title": "Swift bindings (UniFFI) for Apple ecosystem",
+          "status": "planned",
+          "priority": "high",
+          "description": "Swift bindings via UniFFI for always-on AI vision on Watch, Phone, Mac, Vision Pro. Competing with Core Data and Realm.",
+          "pillarsAffected": [
+            "connectivity"
+          ],
+          "scoreImpact": "Drivers +2.0"
+        },
+        {
+          "title": "Prometheus metrics exporter",
+          "status": "planned",
+          "priority": "medium",
+          "description": "Export WAT telemetry counters as Prometheus /metrics endpoint. Quick win (2 days). Pairs with Grafana dashboards.",
+          "pillarsAffected": [
+            "connectivity"
+          ],
+          "scoreImpact": "Tooling +1.5"
+        },
+        {
+          "title": "API documentation + getting-started guide",
+          "status": "planned",
+          "priority": "medium",
+          "description": "OpenAPI/protobuf docs, Lens query examples, TrustExchange trait documentation. Required for Protocol score 9.0+.",
+          "pillarsAffected": [
+            "connectivity"
+          ],
+          "scoreImpact": "Protocol +0.2"
+        },
+        {
+          "title": "GUI administration panel",
+          "status": "idea",
+          "priority": "low",
+          "description": "Web-based admin UI for browsing entities, confidence envelopes, provenance chains, graph edges. Requires wire protocol (WN-TEP-19).",
+          "pillarsAffected": [
+            "connectivity"
+          ],
+          "scoreImpact": "Tooling +2.0"
+        }
+      ]
+    },
+    {
+      "name": "Benchmarking & Validation",
+      "items": [
+        {
+          "title": "Real-disk (NVMe) comprehensive benchmarks",
+          "status": "planned",
+          "priority": "high",
+          "description": "Current benchmarks mostly SimulatedIo. Need full suite on FileIo with NVMe SSD for production-representative numbers.",
+          "pillarsAffected": [
+            "performance"
+          ]
+        },
+        {
+          "title": "Comparative benchmarks vs competitors",
+          "status": "idea",
+          "priority": "medium",
+          "description": "Head-to-head against SQLite, RocksDB, Neo4j, PostGIS, Elasticsearch on equivalent workloads.",
+          "pillarsAffected": [
+            "performance",
+            "efficiency"
+          ]
+        },
+        {
+          "title": "Long-running soak tests",
+          "status": "idea",
+          "priority": "medium",
+          "description": "Multi-hour continuous workload tests to validate stability, memory leaks, and WAF under sustained load.",
+          "pillarsAffected": [
+            "reliability",
+            "performance"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "NVM Storage Engine",
+      "items": [
+        {
+          "title": "trustdb-nvm crate: hardware-aware persistence stack",
+          "status": "complete",
+          "priority": "high",
+          "description": "26 source files, ~11K lines, 214 tests. Three-tier epoch persistence, platform fences, MmapBackend, CentralHashBuffer, adaptive config, write coalescer, confidence-weighted persistence, crash recovery. PRs #109–#186.",
+          "pillarsAffected": [
+            "performance",
+            "reliability",
+            "efficiency"
+          ],
+          "scoreImpact": "Performance 7.8→8.2, Reliability 8.9→9.2, Efficiency 9.0→9.4"
+        },
+        {
+          "title": "EpochWalWriter: WAL elimination from hot path",
+          "status": "complete",
+          "priority": "high",
+          "description": "3,000x storage energy reduction via LPSR preservation. Epoch batching keeps NVMe asleep. PRs #109–#186.",
+          "pillarsAffected": [
+            "efficiency",
+            "performance"
+          ]
+        },
+        {
+          "title": "Platform fences: ARM64 + x86_64 inline assembly",
+          "status": "complete",
+          "priority": "high",
+          "description": "ARM64 dc cvap/dsb/PRFM + x86_64 CLFLUSHOPT/SFENCE/_mm_prefetch. Hardware auto-detection for Apple Silicon, Graviton4, x86_64. PRs #109–#186.",
+          "pillarsAffected": [
+            "reliability",
+            "performance"
+          ]
+        },
+        {
+          "title": "Windows + Graviton optimizations",
+          "status": "complete",
+          "priority": "high",
+          "description": "Windows VirtualLock/NUMA VirtualAllocExNuma. Graviton ARM64 Fargate: 20% cost, 30% perf. PRs #109–#186.",
+          "pillarsAffected": [
+            "efficiency",
+            "performance"
+          ]
+        },
+        {
+          "title": "P1-07: Apple hardware power measurement",
+          "status": "planned",
+          "priority": "high",
+          "description": "Real Apple Silicon power measurement with IOReport/powermetrics to validate NVM tier energy claims on M-series hardware.",
+          "pillarsAffected": [
+            "efficiency"
+          ]
+        },
+        {
+          "title": "EFS→EBS migration for NVM storage",
+          "status": "planned",
+          "priority": "high",
+          "description": "Migrate from EFS to EBS (gp3/io2) for NVM-aligned block storage with consistent latency and IOPS provisioning.",
+          "pillarsAffected": [
+            "performance",
+            "reliability"
+          ]
+        },
+        {
+          "title": "io_uring wiring for async NVM I/O",
+          "status": "planned",
+          "priority": "medium",
+          "description": "Wire io_uring submission queue into NVM flush path for zero-copy async I/O on Linux. Replaces blocking msync calls.",
+          "pillarsAffected": [
+            "performance",
+            "efficiency"
+          ]
+        },
+        {
+          "title": "BM25 fast path for NVM-backed search",
+          "status": "planned",
+          "priority": "medium",
+          "description": "NVM-optimized BM25 scoring with prefetched posting lists and confidence-weighted term frequency.",
+          "pillarsAffected": [
+            "performance"
+          ]
+        }
+      ]
+    }
+  ]
+}

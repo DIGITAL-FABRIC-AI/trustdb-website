@@ -1,0 +1,53 @@
+{
+  "slug": "rrms",
+  "name": "Retrieval-Reinforced Memory Strengthening (RRMS)",
+  "category": "Epistemic Storage",
+  "status": "implemented",
+  "overview": "RRMS implements Hebbian learning ('neurons that fire together wire together') at the storage layer. Frequently accessed data has its confidence strengthened, while rarely accessed data allows natural temporal decay. This creates a self-reinforcing memory system where important data maintains high confidence through use, evaluated at 10.3ns per access.",
+  "howItWorks": [
+    { "step": "1", "title": "Access Tracking", "description": "Each read operation increments a lightweight access counter in the LeafEntry metadata. The counter uses a probabilistic sketch (HyperLogLog-style) to avoid write amplification on hot keys." },
+    { "step": "2", "title": "Strengthening Evaluation", "description": "At read time, RRMS checks the access frequency against configurable thresholds. If the access rate exceeds the strengthening threshold, a confidence boost is computed using a logarithmic curve (diminishing returns)." },
+    { "step": "3", "title": "Confidence Boost", "description": "The boost is applied as a modifier to the ConfidenceEnvelope, counteracting temporal decay. High-frequency access can fully offset decay, keeping frequently-used data at peak confidence. The boost is capped to prevent runaway reinforcement." },
+    { "step": "4", "title": "Interaction with TDQP", "description": "During read, TDQP evaluates decay first, then RRMS applies its reinforcement modifier. The net effect is: current_confidence = decay(base_confidence) + reinforcement_boost. This runs in 10.3ns total." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Per-Access Evaluation",
+      "value": "10.3ns",
+      "target": "<20ns",
+      "met": true,
+      "comparisons": [
+        { "system": "Redis LRU tracking", "value": "~5ns", "source": "Simpler: binary evict/keep, no confidence math" },
+        { "system": "App-layer frequency tracking", "value": "1-10\u00b5s", "source": "Counter update + confidence recomputation" }
+      ]
+    },
+    {
+      "name": "Throughput",
+      "value": "~97M evals/sec",
+      "target": ">50M/sec",
+      "met": true
+    },
+    {
+      "name": "Write Amplification",
+      "value": "<0.1% (probabilistic counter)",
+      "target": "<1%",
+      "met": true
+    }
+  ],
+  "comparisons": {
+    "narrative": "Caching systems like Redis implement access-frequency tracking for eviction decisions, but this is binary (keep/evict) rather than continuous confidence adjustment. TrustDB's RRMS is slower than Redis's simple LRU counter (~10ns vs ~5ns) but provides fundamentally richer semantics \u2014 confidence strengthening rather than just eviction priority. No other database implements Hebbian-style memory reinforcement.",
+    "competitors": [
+      { "system": "Redis", "approach": "LRU/LFU eviction tracking", "limitation": "Binary keep/evict decision; no confidence semantics; eviction, not strengthening" },
+      { "system": "PostgreSQL", "approach": "pg_stat_user_tables for access statistics", "limitation": "Table-level stats only; no per-row access tracking; no confidence integration" },
+      { "system": "Memcached", "approach": "LRU eviction", "limitation": "No access frequency tracking at all; pure LRU" }
+    ]
+  },
+  "evidence": [
+    { "label": "RRMS implementation", "path": "trustdb/src/belief/rrms.rs" },
+    { "label": "Access counter sketch", "path": "trustdb/src/primitives/access_counter.rs" },
+    { "label": "TDQP+RRMS integration", "path": "trustdb/src/query/temporal_decay.rs" },
+    { "label": "Benchmark report", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["temporal-decay", "snbr", "confidence-envelopes"],
+  "pillarsAffected": ["performance", "reliability", "efficiency"]
+}

@@ -1,0 +1,372 @@
+{
+  "pillar": "connectivity",
+  "pillarName": "Connectivity & Ecosystem",
+  "subtitle": "The Integration Pillar",
+  "overallScore": 3.5,
+  "sections": [
+    {
+      "metric": "drivers",
+      "metricName": "Drivers & ORMs",
+      "score": 2.0,
+      "status": "critical",
+      "benchmarks": [
+        {
+          "name": "Rust (native)",
+          "value": "Full API (47 store op modules + TEP exchange layer)",
+          "target": "Full API",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "C (native) + 30+ bindings" },
+            { "system": "RocksDB", "value": "C++ (native) + 10+ bindings" },
+            { "system": "Neo4j", "value": "Java (native) + 8 official drivers" }
+          ]
+        },
+        {
+          "name": "Python",
+          "value": "PyO3 crate exists, no Lens/TEP exposure",
+          "target": "Stable driver with Lens API",
+          "met": false,
+          "comparisons": [
+            { "system": "SQLite", "value": "Built into stdlib" },
+            { "system": "Neo4j", "value": "Official driver (neo4j-python)" },
+            { "system": "RocksDB", "value": "PyRocksDB (community)" }
+          ]
+        },
+        {
+          "name": "JavaScript/Node.js",
+          "value": "Not yet",
+          "target": "Stable driver via gRPC/WASM",
+          "met": false,
+          "comparisons": [
+            { "system": "SQLite", "value": "better-sqlite3, sql.js" },
+            { "system": "Neo4j", "value": "Official driver (neo4j-driver)" }
+          ]
+        },
+        {
+          "name": "Swift (Apple native)",
+          "value": "Not yet",
+          "target": "Stable driver via UniFFI/cbindgen",
+          "met": false,
+          "comparisons": [
+            { "system": "SQLite", "value": "Built into iOS/macOS" },
+            { "system": "Core Data", "value": "Native Apple framework" },
+            { "system": "Realm", "value": "Official Swift SDK" }
+          ]
+        }
+      ],
+      "narrative": "This is the biggest ecosystem gap. SQLite is built into Python's standard library and every Apple device. Neo4j has 8 official drivers. TrustDB has Rust only. For the Apple Silicon target market, Swift bindings are critical \u2014 competing against Core Data and Realm which are first-class Apple citizens. Python via PyO3 is the highest priority for data science adoption. The PyO3 bindings crate exists in wikai-core but does not yet expose the Lens API or TEP exchange types. This gap limits TrustDB to Rust-only projects today.",
+      "evidence": [
+        { "label": "Store API (47 modules)", "path": "wikai-core/crates/trustdb/src/store/" },
+        { "label": "TEP Exchange Layer", "path": "wikai-core/crates/trustdb/src/exchange/" },
+        { "label": "PyO3 Bindings", "path": "wikai-core/bindings/python/" },
+        { "label": "wikai-core crates", "path": "wikai-core/crates/" }
+      ],
+      "history": [],
+      "roadmapTo9": {
+        "currentScore": 2.0,
+        "targetScore": 9.0,
+        "tasks": [
+          {
+            "task": "Python driver via PyO3 with Lens API + TEP types",
+            "scoreImpact": "+2.5",
+            "effort": "5 days",
+            "priority": "high",
+            "notes": "PyO3 crate exists, needs Lens/View<T>/EBP exposure. Data scientists are the primary non-Rust audience."
+          },
+          {
+            "task": "Swift bindings via UniFFI for Apple ecosystem",
+            "scoreImpact": "+2.0",
+            "effort": "7 days",
+            "priority": "high",
+            "notes": "Critical for Apple always-on AI vision. Competing with Core Data (native). UniFFI generates Swift from Rust traits."
+          },
+          {
+            "task": "JavaScript/WASM client for browser + Node.js",
+            "scoreImpact": "+1.5",
+            "effort": "5 days",
+            "priority": "medium",
+            "notes": "wasm-bindgen for browser, napi-rs for Node.js. Auto-generated from gRPC proto once wire protocol exists."
+          },
+          {
+            "task": "Go driver (auto-generated from protobuf)",
+            "scoreImpact": "+1.0",
+            "effort": "2 days",
+            "priority": "low",
+            "notes": "Once gRPC proto exists (WN-TEP-18), Go client auto-generates. Kubernetes/infrastructure audience."
+          }
+        ]
+      }
+    },
+    {
+      "metric": "protocol",
+      "metricName": "Protocol / API",
+      "score": 5.5,
+      "status": "adequate",
+      "benchmarks": [
+        {
+          "name": "Query API Design",
+          "value": "Lens API (composable, typed, governance-embedded)",
+          "target": "Designed + foundation types implemented",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "SQL (string-based)" },
+            { "system": "Neo4j", "value": "Cypher (string-based)" },
+            { "system": "MongoDB", "value": "MQL (JSON-based)" },
+            { "system": "Elasticsearch", "value": "Query DSL (JSON)" },
+            { "system": "TrustDB", "value": "Lens API (composable, typed, governance-as-data)" }
+          ]
+        },
+        {
+          "name": "Epistemic Return Types",
+          "value": "View<T> three-state (Present/ExpectedAbsent/Unknown) \u2014 51 tests",
+          "target": "Implemented",
+          "met": true,
+          "comparisons": [
+            { "system": "All traditional DBs", "value": "Option<T> / nullable (two-state only)" },
+            { "system": "TrustDB", "value": "View<T> with confidence, provenance, coverage, gap-honesty" }
+          ]
+        },
+        {
+          "name": "Write-Side Governance (EBP)",
+          "value": "Explore/Provisional/Commit state machine \u2014 storage-enforced transitions",
+          "target": "Implemented",
+          "met": true,
+          "comparisons": [
+            { "system": "All traditional DBs", "value": "No epistemic state on writes" },
+            { "system": "TrustDB", "value": "EBP: speculation auto-expires, quorum promotes to Commit, offline writes capped at Provisional" }
+          ]
+        },
+        {
+          "name": "Sync Protocol Types",
+          "value": "SyncEnvelope + SyncDelta \u2014 universal exchange unit for mesh/device/federation",
+          "target": "Implemented",
+          "met": true,
+          "comparisons": [
+            { "system": "CRDTs", "value": "Eventual consistency, no epistemic weighting" },
+            { "system": "Raft", "value": "Replica quorum, not observer quorum" },
+            { "system": "TrustDB", "value": "Clearance-filtered at sync boundary, confidence-stratified, CWMC quorum" }
+          ]
+        },
+        {
+          "name": "Governance Artifacts",
+          "value": "GovernanceArtifact with Blake3 integrity \u2014 compliance by construction",
+          "target": "Implemented",
+          "met": true,
+          "comparisons": [
+            { "system": "PostgreSQL", "value": "Separate audit log (pgaudit)" },
+            { "system": "Neo4j", "value": "Security event log (separate)" },
+            { "system": "TrustDB", "value": "Every query produces self-contained cryptographic audit record" }
+          ]
+        },
+        {
+          "name": "Wire Protocol",
+          "value": "Not yet implemented",
+          "target": "gRPC + Arrow Flight",
+          "met": false,
+          "comparisons": [
+            { "system": "PostgreSQL", "value": "PG wire protocol (industry standard)" },
+            { "system": "Neo4j", "value": "Bolt protocol" },
+            { "system": "MongoDB", "value": "BSON wire protocol" },
+            { "system": "DuckDB", "value": "Arrow Flight SQL" }
+          ]
+        },
+        {
+          "name": "External Access",
+          "value": "In-process Rust API only",
+          "target": "Remote gRPC + Arrow Flight SQL",
+          "met": false,
+          "comparisons": [
+            { "system": "PostgreSQL", "value": "Any TCP client" },
+            { "system": "Neo4j", "value": "HTTP + Bolt" },
+            { "system": "DuckDB", "value": "Embedded + optional Flight server" }
+          ]
+        },
+        {
+          "name": "Streaming / Subscriptions",
+          "value": "Not yet implemented",
+          "target": "Lens-filtered change streams",
+          "met": false,
+          "comparisons": [
+            { "system": "MongoDB", "value": "Change streams" },
+            { "system": "Neo4j", "value": "CDC (Change Data Capture)" },
+            { "system": "PostgreSQL", "value": "LISTEN/NOTIFY + logical replication" }
+          ]
+        }
+      ],
+      "narrative": "TrustDB's Protocol/API is architecturally novel but partially implemented. The semantic foundation is now built and tested (51 tests): View<T> three-state returns eliminate the 'I don't know vs it doesn't exist' ambiguity that plagues every traditional database. EBP (Epistemic Bridge Protocol) enforces write-side governance at the storage boundary \u2014 agents cannot accidentally commit speculation as fact. SyncEnvelope/SyncDelta provide a universal exchange unit for mesh gossip, cross-device sync, and federation. GovernanceArtifact makes every query produce a self-contained compliance record with Blake3 integrity. What's missing: the Lens query engine (composition, compilation, execution), the wire protocol (gRPC, Arrow Flight), streaming subscriptions, and external access. The Lens API is designed to be programmatic (for AI agents) rather than string-based (SQL/Cypher) \u2014 this is intentional and architecturally correct for the machine-native market, but means no existing tooling can connect until the wire protocol ships.",
+      "evidence": [
+        { "label": "TEP Exchange Module (5 files, 2,185 LOC, 51 tests)", "path": "wikai-core/crates/trustdb/src/exchange/" },
+        { "label": "View<T> Core Type", "path": "wikai-core/crates/trustdb/src/exchange/view.rs" },
+        { "label": "EBP State Machine", "path": "wikai-core/crates/trustdb/src/exchange/ebp.rs" },
+        { "label": "SyncEnvelope/SyncDelta Types", "path": "wikai-core/crates/trustdb/src/exchange/sync_types.rs" },
+        { "label": "GovernanceArtifact + Blake3", "path": "wikai-core/crates/trustdb/src/exchange/governance_artifact.rs" },
+        { "label": "AssertionMeta (entropy, OCSS)", "path": "wikai-core/crates/trustdb/src/exchange/assertion_meta.rs" },
+        { "label": "TEP Brief (architecture doc)", "path": "Research/API/TEP \u2014 TrustDB Exchange Protocol Brief.md" },
+        { "label": "Ambient Knowledge Research", "path": "Research/API/Ambient Knowledge \u2014 A Theory of Epistemic API Design for TrustDB-perplexity.md" },
+        { "label": "Wikai Coordination Entity", "path": "project/tep-exchange-protocol (21 worknodes, 5 lanes)" }
+      ],
+      "history": [
+        {
+          "date": "2026-03-31",
+          "from": 5.0,
+          "to": 5.5,
+          "reason": "TEP semantic foundation implemented: View<T>, EBP, AssertionMeta, SyncEnvelope/SyncDelta, GovernanceArtifact. 5 files, 2,185 LOC, 51 tests passing. Lane A of TEP plan complete."
+        }
+      ],
+      "roadmapTo9": {
+        "currentScore": 5.5,
+        "targetScore": 9.5,
+        "phases": [
+          {
+            "name": "Tier 1: Lens API (5.5 \u2192 7.0)",
+            "effort": "12 days",
+            "scoreImpact": "+1.5",
+            "tasks": [
+              { "wn": "WN-TEP-06", "task": "Lens core type + filters (confidence, temporal, spatial, classification)", "days": 2 },
+              { "wn": "WN-TEP-07", "task": "Lens composition algebra (intersect/union at plan level)", "days": 2 },
+              { "wn": "WN-TEP-08", "task": "Lens compilation to TraversalPlan (cacheable, serializable)", "days": 1.5 },
+              { "wn": "WN-TEP-09", "task": "Lens serialization as GovernanceArtifact (audit record)", "days": 1.5 },
+              { "wn": "WN-TEP-15", "task": "TrustExchange trait (canonical in-process API)", "days": 2 },
+              { "wn": "WN-TEP-16", "task": "TrustExchange implementation (wired to store)", "days": 2 },
+              { "wn": "WN-TEP-17", "task": "HintBatch (implicit relationship surfacing)", "days": 1 }
+            ]
+          },
+          {
+            "name": "Tier 2: Wire Protocol (7.0 \u2192 8.5)",
+            "effort": "7 days",
+            "scoreImpact": "+1.5",
+            "tasks": [
+              { "wn": "WN-TEP-18", "task": "Protobuf schema definitions (full epistemic semantics)", "days": 1.5 },
+              { "wn": "WN-TEP-19", "task": "gRPC service (QueryLens, Assert, Subscribe, Sync)", "days": 2 },
+              { "wn": "WN-TEP-20", "task": "Arrow Flight adapter (LensResult to RecordBatch)", "days": 2 },
+              { "wn": "WN-TEP-21", "task": "Arrow Flight SQL compatibility (Polars, DuckDB, Tableau)", "days": 1.5 }
+            ]
+          },
+          {
+            "name": "Tier 3: Streaming + Sync (8.5 \u2192 9.0)",
+            "effort": "6 days",
+            "scoreImpact": "+0.5",
+            "tasks": [
+              { "wn": "WN-TEP-14", "task": "Sync subscriptions / Lens-filtered change streams", "days": 3 },
+              { "wn": "NEW", "task": "WebSocket/SSE endpoint for browser consumers", "days": 2 },
+              { "wn": "NEW", "task": "Cursor-based pagination for large result sets", "days": 1 }
+            ]
+          },
+          {
+            "name": "Tier 4: Polish (9.0 \u2192 9.5)",
+            "effort": "5 days",
+            "scoreImpact": "+0.5",
+            "tasks": [
+              { "wn": "NEW", "task": "API documentation (OpenAPI/proto docs, getting-started guide)", "days": 2 },
+              { "wn": "NEW", "task": "Structured error model (wire-friendly codes, epistemic context)", "days": 1 },
+              { "wn": "NEW", "task": "Rate limiting + backpressure on wire protocol", "days": 1 },
+              { "wn": "NEW", "task": "Client SDK generation (Rust + Python stubs from proto)", "days": 1 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "metric": "tooling",
+      "metricName": "Tooling & Observability",
+      "score": 4.0,
+      "status": "needs-work",
+      "benchmarks": [
+        {
+          "name": "Built-in Telemetry",
+          "value": "WAT counters (latency, throughput, cache hit rate)",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            { "system": "RocksDB", "value": "Statistics + perf_context" },
+            { "system": "Neo4j", "value": "JMX + Prometheus endpoint" },
+            { "system": "PostgreSQL", "value": "pg_stat_* views" }
+          ]
+        },
+        {
+          "name": "Benchmark Harness",
+          "value": "DB-Gym (17 workloads, 3 backends)",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            { "system": "RocksDB", "value": "db_bench (built-in)" },
+            { "system": "SQLite", "value": "speedtest1" }
+          ]
+        },
+        {
+          "name": "Prometheus Integration",
+          "value": "Not yet",
+          "target": "Available",
+          "met": false,
+          "comparisons": [
+            { "system": "Neo4j", "value": "Native Prometheus endpoint" },
+            { "system": "PostgreSQL", "value": "pg_prometheus / exporters" },
+            { "system": "RocksDB", "value": "Community exporters" }
+          ]
+        },
+        {
+          "name": "GUI Admin",
+          "value": "Not yet",
+          "target": "Available",
+          "met": false,
+          "comparisons": [
+            { "system": "Neo4j", "value": "Neo4j Browser (built-in)" },
+            { "system": "MongoDB", "value": "Compass (official)" },
+            { "system": "PostgreSQL", "value": "pgAdmin, DBeaver" },
+            { "system": "SQLite", "value": "DB Browser, Beekeeper" }
+          ]
+        },
+        {
+          "name": "TrustDB Scorecard",
+          "value": "Live dashboard tracking 6 pillars, 18 metrics",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            { "system": "Most DBs", "value": "No equivalent self-assessment tooling" }
+          ]
+        }
+      ],
+      "narrative": "Internal tooling is functional: WAT telemetry tracks key metrics (latency, throughput, cache hits), DB-Gym provides 17 benchmark workloads across 3 backends (SimulatedIo, FileIo, NvmIo), and the TrustDB Scorecard provides a live quality dashboard. What's missing is ecosystem integration: Prometheus exporters (quick win \u2014 WAT counters just need a /metrics endpoint), Grafana dashboards, and a GUI admin panel. Neo4j ships with a web browser, PostgreSQL has pgAdmin and dozens of GUIs, MongoDB has Compass. TrustDB has none of this. Prometheus integration is the highest-leverage quick win. A GUI admin panel is more ambitious but critical for developer adoption beyond the Rust ecosystem.",
+      "evidence": [
+        { "label": "DB-Gym (17 workloads)", "path": "wikai-core/crates/trustdb_gym/" },
+        { "label": "WAT Telemetry Module", "path": "wikai-core/crates/trustdb/src/telemetry/" },
+        { "label": "TrustDB Scorecard", "path": "trustdb-scorecard/" }
+      ],
+      "history": [],
+      "roadmapTo9": {
+        "currentScore": 4.0,
+        "targetScore": 9.0,
+        "tasks": [
+          {
+            "task": "Prometheus metrics exporter (/metrics endpoint from WAT counters)",
+            "scoreImpact": "+1.5",
+            "effort": "2 days",
+            "priority": "high",
+            "notes": "Quick win. WAT counters already exist, just need prometheus crate + HTTP endpoint."
+          },
+          {
+            "task": "Grafana dashboard templates (pre-built panels for key metrics)",
+            "scoreImpact": "+0.5",
+            "effort": "1 day",
+            "priority": "medium",
+            "notes": "JSON dashboard definitions. Pairs with Prometheus exporter."
+          },
+          {
+            "task": "GUI admin panel (web-based entity/graph/confidence inspector)",
+            "scoreImpact": "+2.0",
+            "effort": "10 days",
+            "priority": "medium",
+            "notes": "Web UI for browsing entities, confidence envelopes, provenance chains, graph edges. Requires wire protocol (WN-TEP-19) as backend."
+          },
+          {
+            "task": "CLI tool (trustdb-cli) for interactive queries and admin",
+            "scoreImpact": "+1.0",
+            "effort": "3 days",
+            "priority": "medium",
+            "notes": "Command-line interface for Lens queries, entity inspection, sync status. Pairs with TrustExchange trait."
+          }
+        ]
+      }
+    }
+  ]
+}

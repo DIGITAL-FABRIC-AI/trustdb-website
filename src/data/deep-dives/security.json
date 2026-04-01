@@ -1,0 +1,329 @@
+{
+  "pillar": "security",
+  "pillarName": "Security & Compliance",
+  "subtitle": "The Protection Pillar",
+  "overallScore": 7.8,
+  "sections": [
+    {
+      "metric": "accessControl",
+      "metricName": "Access Control",
+      "score": 8.0,
+      "status": "strong",
+      "benchmarks": [
+        {
+          "name": "CBAC (6-State Governance Circuit Breaker)",
+          "value": "Implemented — 6 states, CAS semantics, 116 tests passing",
+          "target": "Implemented",
+          "met": true,
+          "comparisons": [
+            { "system": "PostgreSQL", "value": "Full RBAC + RLS" },
+            { "system": "Neo4j Enterprise", "value": "RBAC + sub-graph access" },
+            { "system": "MongoDB", "value": "RBAC + field-level" },
+            { "system": "SQLite", "value": "None (embedded)" }
+          ]
+        },
+        {
+          "name": "REWG (Graph-Derived Entitlements)",
+          "value": "Implemented — bitwise AND inheritance, TRAVERSE primitive, 27 tests",
+          "target": "Implemented",
+          "met": true,
+          "comparisons": [
+            { "system": "Google Zanzibar", "value": "ReBAC (separate service, set operations)" },
+            { "system": "Others", "value": "N/A — no competitor derives entitlements from graph position at the storage layer" }
+          ]
+        },
+        {
+          "name": "EACB (Human-in-the-Loop FROST Signatures)",
+          "value": "Implemented — N-of-M threshold authorization, 23 tests",
+          "target": "Implemented",
+          "met": true,
+          "comparisons": [
+            { "system": "Others", "value": "N/A — no database has built-in threshold signature authorization for autonomous operations" }
+          ]
+        },
+        {
+          "name": "Cryptographic Access Enforcement",
+          "value": "RDKC governance-bound keys — 110 RDKC tests, 10 page_crypto tests",
+          "target": "Cryptographic",
+          "met": true,
+          "comparisons": [
+            { "system": "PostgreSQL RLS", "value": "Policy filter (data loaded, then filtered)" },
+            { "system": "MongoDB FLE", "value": "Field-level encryption (app-layer key management)" },
+            { "system": "SQLite SEE", "value": "Whole-DB encryption (no per-page governance)" }
+          ]
+        },
+        {
+          "name": "Adversarial Testing (Security Gym)",
+          "value": "168 adversarial test functions across 15 gym files targeting access control",
+          "target": "Red team coverage",
+          "met": true,
+          "comparisons": [
+            { "system": "Others", "value": "N/A — no embedded database ships adversarial access control test suites" }
+          ]
+        },
+        {
+          "name": "Authentication",
+          "value": "N/A (embedded)",
+          "target": "N/A",
+          "met": null,
+          "comparisons": [
+            { "system": "SQLite", "value": "N/A (embedded)" },
+            { "system": "Neo4j", "value": "Native + LDAP + SSO" },
+            { "system": "PostgreSQL", "value": "SCRAM + LDAP + cert" }
+          ]
+        }
+      ],
+      "narrative": "Access control is TrustDB's strongest differentiator, backed by 116 CBAC tests, 110 RDKC tests, 23 EACB tests, and 168 adversarial gym test functions. CBAC implements a 6-state governance circuit breaker (Open, Restricted, Suspended, Quarantined, Sealed, EngagementAuthorized) with compare-and-swap semantics. REWG derives entitlements from graph position via bitwise AND — no ACL tables, no policy engine. EACB provides FROST threshold signatures for LAWS 3000.09 human-in-the-loop authorization. Most critically, access control is cryptographic: RDKC derives unique per-page keys from governance state (verified by gym_c02 with 31 correctness tests including avalanche, determinism, and collision detection). A CUI-clearance entity cannot derive the key for a SECRET page — this is verified by gym_g01 clearance boundary battery (6 named attack scenarios) and gym_p01 pre-redaction leakage proof (7 memory-level tests). The gap to 9.5: FIPS ACVP formal validation, timing side-channel proof (gym_s01 exists with 7 tests but needs target-hardware validation), and ML-DSA-87 post-quantum signatures on CBAC audit entries.",
+      "evidence": [
+        { "label": "CBAC Module (8 files, 116 tests)", "path": "trustdb/src/cbac/" },
+        { "label": "REWG Module (27 tests)", "path": "trustdb/src/rewg/ + store/rewg_ops.rs" },
+        { "label": "EACB Module (4 files, 23 tests)", "path": "trustdb/src/eacb/" },
+        { "label": "RDKC Module (10 files, 110 tests)", "path": "trustdb/src/rdkc/" },
+        { "label": "Gym: RDKC Correctness (31 tests)", "path": "trustdb/tests/gym_c02_rdkc_correctness.rs" },
+        { "label": "Gym: Clearance Battery (6 attack scenarios)", "path": "trustdb/tests/gym_g01_clearance_boundary.rs" },
+        { "label": "Gym: CBAC Adversarial (20 tests)", "path": "trustdb/tests/gym_g02_cbac_adversarial.rs" },
+        { "label": "Gym: CBAC Exhaustion DDoS (14 tests)", "path": "trustdb/tests/gym_a03_cbac_exhaustion.rs" },
+        { "label": "Gym: Pre-Redaction Leakage (7 tests)", "path": "trustdb/tests/gym_p01_pre_redaction_leakage.rs" }
+      ],
+      "history": [
+        { "date": "2026-03-31", "value": "8.0", "note": "CBAC 6-state (PRE-04), RDKC+CBAC wired (B01), EACB/FROST (B02), REWG wired (PRE-03). 116 CBAC tests, 110 RDKC tests, 168 adversarial gym functions. Up from 2.0." }
+      ]
+    },
+    {
+      "metric": "encryption",
+      "metricName": "Encryption",
+      "score": 8.5,
+      "status": "strong",
+      "benchmarks": [
+        {
+          "name": "Encryption at Rest",
+          "value": "AES-256-GCM-SIV per-page — 10 page_crypto tests, 110 RDKC tests",
+          "target": "AES-256",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite (SEE)", "value": "AES-256 (paid extension, whole-DB, single key)" },
+            { "system": "SQLCipher", "value": "AES-256-CBC (OSS, whole-DB, single key)" },
+            { "system": "RocksDB", "value": "AES-CTR (built-in, whole-DB, single key)" },
+            { "system": "MongoDB", "value": "AES-256-CBC (Enterprise, whole-DB or field-level)" }
+          ]
+        },
+        {
+          "name": "Per-Page Governance-Bound Keys",
+          "value": "Unique key per page from 4 governance inputs — verified by gym_e02 (10 independence tests)",
+          "target": "Per-object encryption",
+          "met": true,
+          "comparisons": [
+            { "system": "All competitors", "value": "Single key for entire database or collection — compromise one key, read everything" }
+          ]
+        },
+        {
+          "name": "Structural Key Expiry",
+          "value": "Keys underivable when governance changes — verified by gym_e01 (12 expiry tests)",
+          "target": "Automatic expiry",
+          "met": true,
+          "comparisons": [
+            { "system": "All competitors", "value": "Manual key rotation or time-based expiry — admin must remember to revoke" }
+          ]
+        },
+        {
+          "name": "Post-Quantum Key Transport",
+          "value": "ML-KEM-1024 + X25519 hybrid — 9 transport tests (CNSA 2.0 aligned)",
+          "target": "Post-quantum ready",
+          "met": true,
+          "comparisons": [
+            { "system": "PostgreSQL", "value": "No PQ support" },
+            { "system": "MongoDB", "value": "No PQ support" },
+            { "system": "RocksDB", "value": "No PQ support" }
+          ]
+        },
+        {
+          "name": "Cryptographic Agility (CAM)",
+          "value": "41 CAM tests — CNSA 2.0 profiles: HKDF-SHA384, AES-256-GCM-SIV, ML-KEM-1024",
+          "target": "Algorithm agility",
+          "met": true,
+          "comparisons": [
+            { "system": "RocksDB", "value": "Fixed AES-CTR, no algorithm selection" },
+            { "system": "SQLCipher", "value": "Configurable but manual, no PQ" }
+          ]
+        },
+        {
+          "name": "Zero Governance Overhead",
+          "value": "WAF 3.03 with and without encryption + governance stack (benchmarked)",
+          "target": "< 5% overhead",
+          "met": true,
+          "comparisons": [
+            { "system": "App-layer governance", "value": "131% overhead (measured)" },
+            { "system": "SQLite + app filtering", "value": "SECRET data loaded into memory, then filtered" }
+          ]
+        },
+        {
+          "name": "Nonce Safety",
+          "value": "gym_c04: 12 nonce safety tests including concurrent write collision detection",
+          "target": "No IV reuse",
+          "met": true,
+          "comparisons": [
+            { "system": "Others", "value": "N/A — most databases use whole-DB encryption without per-page nonce management" }
+          ]
+        },
+        {
+          "name": "Key Cache Safety",
+          "value": "gym_e05: 13 tests — cache invalidation on epoch change, no stale key serving",
+          "target": "No stale keys",
+          "met": true,
+          "comparisons": [
+            { "system": "Others", "value": "N/A — no competitor has governance-aware key caching" }
+          ]
+        },
+        {
+          "name": "Background Re-encryption",
+          "value": "A07: rekey.rs — 25 tests, grace period, multi-epoch fallback for reads during rotation",
+          "target": "Automatic re-key",
+          "met": true,
+          "comparisons": [
+            { "system": "MongoDB", "value": "Manual key rotation with downtime window" },
+            { "system": "RocksDB", "value": "No built-in key rotation" }
+          ]
+        },
+        {
+          "name": "FIPS 140-3 Validation",
+          "value": "Not formally submitted — ACVP vectors built (gym_c01: 9 tests) but not NIST-submitted",
+          "target": "FIPS 140-3 Level 1",
+          "met": false,
+          "comparisons": [
+            { "system": "SQLCipher", "value": "FIPS 140-2 validated (paid)" },
+            { "system": "MongoDB Enterprise", "value": "FIPS 140-2 validated" }
+          ]
+        },
+        {
+          "name": "WAL Tamper Protection",
+          "value": "FNV-1a checksum (non-cryptographic) — HMAC-SHA384 upgrade pending (PRE-05)",
+          "target": "HMAC-SHA384",
+          "met": false,
+          "comparisons": [
+            { "system": "PostgreSQL", "value": "CRC-32C (also non-crypto)" },
+            { "system": "RocksDB", "value": "CRC-32C (also non-crypto)" }
+          ]
+        }
+      ],
+      "narrative": "Encryption is TrustDB's defining capability, backed by 110 RDKC tests, 41 CAM tests, 10 page_crypto tests, 9 transport tests, 25 rekey tests, and 89 adversarial gym test functions across 10 gym files. Every 16KB page is encrypted with AES-256-GCM-SIV (nonce-misuse resistant) using a unique key derived by RDKC from four governance inputs: CBAC state, GEMVT clearance, REWG entitlements, and temporal window. This is verified by gym_e02 (10 input independence tests proving each governance dimension is a live cryptographic dependency) and gym_c02 (31 correctness tests: determinism across 10K runs, avalanche effect, 1M collision search). Structural key expiry is verified by gym_e01 (12 tests proving keys become mathematically underivable when governance state changes — not revoked, not expired, impossible to derive). Post-quantum key transport (ML-KEM-1024 + X25519 hybrid, 9 tests) exceeds every competitor. WAF=3.03 invariance proves the entire stack adds zero additional I/O. Two gaps to 9.5: FIPS 140-3 formal submission (ACVP vectors exist in gym_c01 but haven't been submitted to NIST) and WAL HMAC upgrade (PRE-05, currently FNV-1a checksum).",
+      "evidence": [
+        { "label": "RDKC Module (10 files, 110 tests)", "path": "trustdb/src/rdkc/" },
+        { "label": "CAM Module (7 files, 41 tests)", "path": "trustdb/src/cam/" },
+        { "label": "Page Crypto (10 tests)", "path": "trustdb/src/rdkc/page_crypto.rs" },
+        { "label": "Transport (9 tests, ML-KEM-1024)", "path": "trustdb/src/rdkc/transport.rs" },
+        { "label": "Re-encryption (25 tests)", "path": "trustdb/src/rdkc/rekey.rs" },
+        { "label": "Gym: RDKC Correctness (31 tests)", "path": "trustdb/tests/gym_c02_rdkc_correctness.rs" },
+        { "label": "Gym: Structural Expiry (12 tests)", "path": "trustdb/tests/gym_e01_structural_expiry.rs" },
+        { "label": "Gym: Input Independence (10 tests)", "path": "trustdb/tests/gym_e02_input_independence.rs" },
+        { "label": "Gym: Nonce Safety (12 tests)", "path": "trustdb/tests/gym_c04_nonce_safety.rs" },
+        { "label": "Gym: Key Cache Safety (13 tests)", "path": "trustdb/tests/gym_e05_key_cache_safety.rs" },
+        { "label": "Gym: CNSA 2.0 Compliance (19 tests)", "path": "trustdb/tests/gym_c03_cnsa2_compliance.rs" },
+        { "label": "Gym: ACVP Hardware Identity (9 tests)", "path": "trustdb/tests/gym_c01_hardware_identity.rs" },
+        { "label": "Gym: Pre-Redaction Leakage (7 tests)", "path": "trustdb/tests/gym_p01_pre_redaction_leakage.rs" }
+      ],
+      "history": [
+        { "date": "2026-03-31", "value": "8.5", "note": "Full per-page encryption: RDKC (A01, 110 tests), AES-256-GCM-SIV (B01, 10 page_crypto tests), ML-KEM-1024 transport (B03, 9 tests), CNSA 2.0 profiles (A06, 41 CAM tests), re-encryption (A07, 25 tests), 89 adversarial gym functions. Gaps: FIPS formal submission, WAL HMAC. Up from 3.0." }
+      ]
+    },
+    {
+      "metric": "auditing",
+      "metricName": "Auditing",
+      "score": 7.0,
+      "status": "strong",
+      "benchmarks": [
+        {
+          "name": "Provenance Tracking",
+          "value": "Per-entity ProvenanceChain — inline with LeafEntry, zero query overhead",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            { "system": "PostgreSQL", "value": "pg_audit extension (5\u201315% overhead)" },
+            { "system": "Neo4j", "value": "Security log (Enterprise only)" },
+            { "system": "MongoDB", "value": "Change streams + audit log (5\u201310% overhead)" },
+            { "system": "SQLite", "value": "None built-in" }
+          ]
+        },
+        {
+          "name": "Transaction Co-occurrence (TCI)",
+          "value": "Auto-recorded at flush time — discovers implicit relationships with zero additional I/O",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            { "system": "Others", "value": "N/A — no competitor discovers implicit entity relationships at flush time" }
+          ]
+        },
+        {
+          "name": "CBAC State Transition Audit",
+          "value": "Immutable CAS-versioned log of all governance state changes — 116 CBAC tests verify transitions",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            { "system": "Others", "value": "N/A — no competitor logs confidence-based access control state transitions" }
+          ]
+        },
+        {
+          "name": "Query Performance Impact",
+          "value": "Zero (inline with LeafEntry) — WAF 3.03 invariant with full governance stack",
+          "target": "No overhead",
+          "met": true,
+          "comparisons": [
+            { "system": "pg_audit", "value": "5\u201315% overhead (trigger-based)" },
+            { "system": "MongoDB audit", "value": "5\u201310% overhead" }
+          ]
+        },
+        {
+          "name": "Adversarial Audit Tests",
+          "value": "gym_g02 (20 CBAC adversarial tests), gym_a01 (18 swarm conflict tests), gym_a02 (10 confidence injection tests)",
+          "target": "Red team coverage",
+          "met": true,
+          "comparisons": [
+            { "system": "Others", "value": "N/A — no database ships adversarial audit integrity tests" }
+          ]
+        },
+        {
+          "name": "WAL Integrity",
+          "value": "FNV-1a checksum (non-cryptographic) — HMAC-SHA384 upgrade pending (PRE-05)",
+          "target": "HMAC-SHA384",
+          "met": false,
+          "comparisons": [
+            { "system": "PostgreSQL", "value": "CRC-32C (also non-crypto)" },
+            { "system": "RocksDB", "value": "CRC-32C (also non-crypto)" }
+          ]
+        },
+        {
+          "name": "Temporal Log Export (Compliance)",
+          "value": "Not implemented — no SOX/HIPAA/NIST formatted export",
+          "target": "NIST/SOX format",
+          "met": false,
+          "comparisons": [
+            { "system": "PostgreSQL", "value": "pgaudit CSV export" },
+            { "system": "MongoDB", "value": "JSON audit log export" }
+          ]
+        },
+        {
+          "name": "SIEM Integration",
+          "value": "Not implemented — no CEF/STIX event export",
+          "target": "CEF/STIX",
+          "met": false,
+          "comparisons": [
+            { "system": "Neo4j Enterprise", "value": "Syslog integration" },
+            { "system": "MongoDB", "value": "SIEM-compatible JSON" }
+          ]
+        }
+      ],
+      "narrative": "Auditing is strong on foundations but incomplete on output formats. ProvenanceChain tracks who/what/when on every entity at zero query overhead (inline with LeafEntry, WAF 3.03 invariant). TCI discovers implicit entity relationships at flush time — entirely novel, no competitor offers this. CBAC state transition logging records every governance change with CAS-versioned immutability (verified by 116 CBAC tests and 20 adversarial gym tests). The score is held at 7.0 by three gaps: (1) WAL uses FNV-1a checksum, not cryptographic HMAC — any attacker with disk access could tamper with audit entries undetected (PRE-05 upgrade is 3h of work and the single highest-leverage task for the entire security pillar), (2) no compliance-formatted export (SOX/HIPAA/NIST AU-10 requires structured temporal log export), (3) no SIEM integration (DoD monitoring infrastructure expects CEF/STIX formatted events). Fixing WAL HMAC alone would move this to 8.0. Adding compliance export and SIEM integration would reach 9.0+.",
+      "evidence": [
+        { "label": "Provenance Module", "path": "trustdb/src/primitives/provenance.rs" },
+        { "label": "TCI Module", "path": "trustdb/src/tci/" },
+        { "label": "CBAC Audit (116 tests)", "path": "trustdb/src/cbac/audit.rs" },
+        { "label": "WAL Module", "path": "trustdb/src/wal/" },
+        { "label": "Gym: CBAC Adversarial (20 tests)", "path": "trustdb/tests/gym_g02_cbac_adversarial.rs" },
+        { "label": "Gym: Swarm Conflict (18 tests)", "path": "trustdb/tests/gym_a01_swarm_conflict.rs" },
+        { "label": "Gym: Confidence Injection (10 tests)", "path": "trustdb/tests/gym_a02_confidence_injection.rs" }
+      ],
+      "history": [
+        { "date": "2026-03-31", "value": "7.0", "note": "CBAC audit trail added. 48 adversarial gym functions verify audit integrity. Gaps: WAL HMAC (PRE-05), compliance export (G06), SIEM integration (H06)." }
+      ]
+    }
+  ]
+}

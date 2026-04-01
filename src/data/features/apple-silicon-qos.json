@@ -1,0 +1,69 @@
+{
+  "slug": "apple-silicon-qos",
+  "name": "Apple Silicon QoS",
+  "category": "Efficiency & Hardware",
+  "status": "implemented",
+  "overview": "TrustDB achieves 9.1x lower CPU power consumption than SQLite on Apple Silicon by explicitly pinning I/O threads to efficiency cores via pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND). No competitor database has explicit Apple Silicon QoS integration \u2014 they all run on whatever cores the OS scheduler assigns, typically using high-performance cores for database I/O.",
+  "howItWorks": [
+    { "step": "1", "title": "QoS Class Assignment", "description": "Database I/O threads are assigned QOS_CLASS_BACKGROUND via the macOS pthread API. This tells the OS scheduler to run these threads exclusively on efficiency (E) cores, not performance (P) cores." },
+    { "step": "2", "title": "E-Core Execution", "description": "Apple Silicon E-cores consume 3-10x less power than P-cores for equivalent work. Database I/O is typically not compute-bound \u2014 it's waiting for disk anyway \u2014 so E-cores provide adequate throughput at dramatically lower power." },
+    { "step": "3", "title": "Tiered Configuration", "description": "Two tiers are available: Tier 1 (maximum efficiency, 384mW) and Tier 2 (balanced, 437mW). Applications choose based on whether they prioritize minimum power or slightly better latency." },
+    { "step": "4", "title": "Transparent to Application", "description": "QoS pinning is handled internally by the storage engine. Applications using TrustDB get power efficiency automatically without any configuration." }
+  ],
+  "benchmarks": [
+    {
+      "name": "CPU Power (Tier 1 + QoS:BACKGROUND)",
+      "value": "384 mW",
+      "target": "<500 mW",
+      "met": true,
+      "comparisons": [
+        { "system": "SQLite WAL+NORMAL", "value": "3,995 mW", "source": "Same Apple Silicon hardware" }
+      ]
+    },
+    {
+      "name": "CPU Power (Tier 2 + QoS:BACKGROUND)",
+      "value": "437 mW",
+      "target": "<500 mW",
+      "met": true,
+      "comparisons": [
+        { "system": "SQLite WAL+NORMAL", "value": "3,995 mW" }
+      ]
+    },
+    {
+      "name": "Delta Over Idle",
+      "value": "157 mW (Tier 1)",
+      "target": "<300 mW",
+      "met": true,
+      "comparisons": [
+        { "system": "SQLite delta", "value": "3,896 mW" },
+        { "system": "Reduction", "value": "24.8x lower incremental cost" }
+      ]
+    },
+    {
+      "name": "Power Reduction vs SQLite",
+      "value": "9.1x",
+      "target": ">5x",
+      "met": true,
+      "comparisons": [
+        { "system": "RocksDB", "value": "No QoS (OS-scheduled)" },
+        { "system": "Core Data", "value": "No explicit QoS control" }
+      ]
+    }
+  ],
+  "comparisons": {
+    "narrative": "Every database on Apple Silicon currently runs at full P-core power because none explicitly manage QoS classes. TrustDB is the first embedded database to treat power efficiency as a first-class design goal on heterogeneous CPU architectures.",
+    "competitors": [
+      { "system": "SQLite", "approach": "No QoS awareness \u2014 runs on whatever cores the OS assigns", "limitation": "3,995 mW CPU power (9.1x higher than TrustDB)" },
+      { "system": "RocksDB", "approach": "No QoS awareness", "limitation": "Thread pool runs on P-cores by default" },
+      { "system": "Core Data", "approach": "Apple framework, no explicit QoS for I/O threads", "limitation": "NSPersistentContainer doesn't expose QoS control" },
+      { "system": "Realm", "approach": "No QoS awareness for write transactions", "limitation": "Write transactions use P-cores" }
+    ]
+  },
+  "evidence": [
+    { "label": "NVM Power Analysis", "path": "wikai-core/crates/trustdb-nvm/" },
+    { "label": "MacBook Benchmark Handoff", "path": "Research/TrustDB/MACBOOK-BENCHMARK-HANDOFF.md" },
+    { "label": "Power Measurement Data", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["dynamic-value-codec", "adaptive-epsilon", "b-epsilon-tree"],
+  "pillarsAffected": ["efficiency"]
+}

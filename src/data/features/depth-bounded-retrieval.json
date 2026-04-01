@@ -1,0 +1,53 @@
+{
+  "slug": "depth-bounded-retrieval",
+  "name": "Depth-Bounded Retrieval with Governance (DBRG)",
+  "category": "Cross-Modal Query",
+  "status": "implemented",
+  "overview": "DBRG provides configurable depth limits and confidence floor pruning for graph traversals. Instead of unbounded recursive queries that can explode on dense graphs, DBRG lets callers specify maximum traversal depth and minimum confidence thresholds. Branches where confidence drops below the floor are pruned early, dramatically reducing traversal cost on large graphs.",
+  "howItWorks": [
+    { "step": "1", "title": "Depth Configuration", "description": "Each graph query specifies a maximum depth (1-N hops). The traversal engine tracks current depth and terminates branches that exceed the limit. This prevents runaway queries on cyclical or densely connected graphs." },
+    { "step": "2", "title": "Confidence Floor Pruning", "description": "A minimum confidence threshold is applied at each traversal step. If an entity's current confidence (after TDQP decay) falls below the floor, that branch is pruned entirely. This focuses traversal on high-confidence paths." },
+    { "step": "3", "title": "Governance Filtering", "description": "REWG entitlement checks are applied at each hop. Entities the caller lacks clearance for are invisible \u2014 the traversal skips them as if the edge didn't exist, preventing information leakage through graph structure." },
+    { "step": "4", "title": "Progressive Depth", "description": "Callers can request progressive depth: start with depth=1, evaluate results, then request depth=2 if more context is needed. Each level returns results incrementally, enabling interactive exploration of large graphs." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Depth-2 Traversal (1K edges)",
+      "value": "~450\u00b5s",
+      "target": "<1ms",
+      "met": true,
+      "comparisons": [
+        { "system": "Neo4j (depth-2)", "value": "~200-500\u00b5s", "source": "Native graph; comparable at shallow depth" }
+      ]
+    },
+    {
+      "name": "Confidence Pruning Reduction",
+      "value": "40-80% fewer nodes visited (depends on data)",
+      "target": ">25% reduction",
+      "met": true
+    },
+    {
+      "name": "Governance Filter Overhead",
+      "value": "<3% per hop",
+      "target": "<5% per hop",
+      "met": true
+    }
+  ],
+  "comparisons": {
+    "narrative": "Neo4j supports depth-limited traversals via Cypher's variable-length patterns and APOC path expanders. TrustDB's DBRG adds confidence-aware pruning and governance filtering that Neo4j lacks natively. For pure graph traversal speed, Neo4j is comparable or faster. DBRG's advantage is the integrated epistemic and governance filtering that would require post-processing in Neo4j.",
+    "competitors": [
+      { "system": "Neo4j", "approach": "Variable-length patterns with depth limits; APOC path expanders", "limitation": "No confidence-aware pruning; governance requires application-layer filtering; post-processing for confidence" },
+      { "system": "DGraph", "approach": "Recurse directive with depth parameter", "limitation": "No confidence integration; ACL-based security, not graph-structural governance" },
+      { "system": "Amazon Neptune", "approach": "Gremlin repeat().times(N) steps", "limitation": "No confidence or governance integration; depth limiting only" },
+      { "system": "PostgreSQL recursive CTE", "approach": "WITH RECURSIVE with depth counter", "limitation": "Slow for deep traversals; no native pruning; must implement all filtering in SQL" }
+    ]
+  },
+  "evidence": [
+    { "label": "DBRG traversal engine", "path": "trustdb/src/graph/dbrg.rs" },
+    { "label": "Confidence floor pruning", "path": "trustdb/src/graph/pruning.rs" },
+    { "label": "Progressive depth API", "path": "trustdb/src/query/progressive.rs" },
+    { "label": "Benchmark results", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["graph-edges", "confidence-envelopes", "rewg"],
+  "pillarsAffected": ["performance", "scalability", "security"]
+}

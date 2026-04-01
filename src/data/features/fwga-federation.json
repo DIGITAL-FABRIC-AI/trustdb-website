@@ -1,0 +1,62 @@
+{
+  "slug": "fwga-federation",
+  "name": "FWGA (5-Tier Federated Mesh)",
+  "category": "Federation & Sync",
+  "status": "implemented",
+  "overview": "FWGA (Federated World Graph Anchoring) implements a 5-tier device mesh (Mothership/Regional/Desktop/Mobile/EdgeSensor) with clearance-enforced synchronization, quorum-as-confidence thresholds, and governed conflict resolution. Unlike CouchDB-style replication where any node can overwrite any data, FWGA enforces CBAC clearance at the sync layer \u2014 a field operator at clearance 2 cannot overwrite an authority write at clearance 5.",
+  "howItWorks": [
+    { "step": "1", "title": "Device Manifest", "description": "Each device registers with a DeviceManifest specifying its tier (Mothership, Regional, Desktop, Mobile, EdgeSensor), clearance level, and sync capabilities. The manifest determines what data the device can receive and what it can modify." },
+    { "step": "2", "title": "Clearance-Aware Sync", "description": "During sync, the clearance index ensures only appropriately-classified data flows to each device. A SECRET page never syncs to a device with clearance < 5. This is enforced cryptographically via RDKC \u2014 the device literally cannot derive the decryption key." },
+    { "step": "3", "title": "Conflict Resolution", "description": "When two devices modify the same entity, the 4-way conflict classifier determines resolution: clearance wins (higher clearance takes precedence), temporal wins (most recent for same clearance), confidence wins (higher confidence score), or queue for human review." },
+    { "step": "4", "title": "Quorum-as-Confidence", "description": "Instead of binary quorum (majority wins), TrustDB uses continuous confidence thresholds. If 3 of 5 devices agree with confidence > 0.8, the result confidence is the weighted average \u2014 not just 'quorum met/not met'." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Device Tier Hierarchy",
+      "value": "5 tiers implemented",
+      "target": "5 tiers",
+      "met": true,
+      "comparisons": [
+        { "system": "CouchDB", "value": "Flat peer-to-peer, no hierarchy" },
+        { "system": "Realm Sync", "value": "Partition-based, no tiers" }
+      ]
+    },
+    {
+      "name": "Clearance-Enforced Sync",
+      "value": "RDKC-backed (cryptographic)",
+      "target": "Cryptographic",
+      "met": true,
+      "comparisons": [
+        { "system": "CouchDB", "value": "No clearance model" },
+        { "system": "PouchDB", "value": "No governance layer" }
+      ]
+    },
+    {
+      "name": "Conflict Classification",
+      "value": "4-way (clearance/temporal/confidence/queue)",
+      "target": "Multi-strategy",
+      "met": true,
+      "comparisons": [
+        { "system": "CouchDB", "value": "Revision tree (LWW)" },
+        { "system": "Realm", "value": "Custom handlers (manual)" }
+      ]
+    }
+  ],
+  "comparisons": {
+    "narrative": "FWGA is the only federated sync protocol that combines device hierarchy, clearance-enforced data flow, cryptographic access control, and confidence-weighted consensus. Every competitor either uses flat replication (CouchDB), partition-based sync (Realm), or consensus without governance (Raft/Paxos).",
+    "competitors": [
+      { "system": "CouchDB", "approach": "Multi-master document replication with revision trees", "limitation": "No clearance, no governance, last-write-wins conflict resolution" },
+      { "system": "PouchDB", "approach": "CouchDB-compatible offline-first sync", "limitation": "No device scoping, no confidence thresholds, no clearance" },
+      { "system": "Realm Sync", "approach": "Partition-based sync with custom conflict handlers", "limitation": "No CBAC, no cryptographic enforcement, partitions are manual" },
+      { "system": "Cassandra", "approach": "Multi-DC replication with tunable consistency", "limitation": "No confidence semantics, no governance, no device hierarchy" }
+    ]
+  },
+  "evidence": [
+    { "label": "World Graph Module", "path": "trustdb/src/world_graph/" },
+    { "label": "Sync Operations", "path": "trustdb/src/store/sync_ops.rs" },
+    { "label": "Device Manifest", "path": "trustdb/src/store/device_manifest.rs" },
+    { "label": "Background Sync Worker", "path": "trustdb/src/background_sync.rs" }
+  ],
+  "relatedFeatures": ["ocss-offline", "conflict-resolution", "cbac", "rdkc"],
+  "pillarsAffected": ["scalability", "reliability", "security"]
+}

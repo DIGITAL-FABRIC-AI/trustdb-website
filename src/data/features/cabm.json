@@ -1,0 +1,53 @@
+{
+  "slug": "cabm",
+  "name": "Confidence-Aware Buffer Merge (CABM)",
+  "category": "Epistemic Storage",
+  "status": "implemented",
+  "overview": "CABM extends the B-epsilon tree flush path to handle confidence metadata during buffer merges. When internal node buffers are flushed to children, CABM applies temporal decay to envelopes in transit and uses Multi-Parent Confidence Inheritance (MPCI) to merge conflicting writes to the same key. This ensures confidence semantics are maintained without application intervention.",
+  "howItWorks": [
+    { "step": "1", "title": "Buffer Accumulation", "description": "Writes accumulate in B-epsilon internal node buffers as MessageEnvelopes, each carrying a ConfidenceEnvelope. The buffer acts as a write-ahead staging area." },
+    { "step": "2", "title": "Flush Trigger", "description": "When a buffer exceeds its capacity threshold (configurable, default tied to adaptive-epsilon tuning), a flush is triggered. CABM intercepts the flush path before data moves to child nodes." },
+    { "step": "3", "title": "Decay Application", "description": "For each envelope in the flush batch, CABM evaluates temporal decay based on elapsed time since creation. Envelopes that have decayed below the configured floor are marked but preserved (not dropped)." },
+    { "step": "4", "title": "MPCI Merge", "description": "When multiple envelopes target the same key, Multi-Parent Confidence Inheritance resolves the conflict. The merge considers confidence scores, source provenance, and temporal freshness to produce a single merged envelope with an auditable lineage." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Merge Overhead vs Plain Flush",
+      "value": "+12%",
+      "target": "<25%",
+      "met": true,
+      "comparisons": [
+        { "system": "App-layer merge (PostgreSQL)", "value": "+200-400%", "source": "Trigger-based conflict resolution with extra queries" }
+      ]
+    },
+    {
+      "name": "MPCI Resolution Time",
+      "value": "~18ns per conflict",
+      "target": "<50ns",
+      "met": true
+    },
+    {
+      "name": "Flush Throughput with CABM",
+      "value": "~85% of raw flush rate",
+      "target": ">75%",
+      "met": true
+    }
+  ],
+  "comparisons": {
+    "narrative": "Traditional databases handle write conflicts at the application layer or through simple last-write-wins semantics. CABM integrates confidence-aware conflict resolution directly into the storage engine's flush path, eliminating the need for application-level merge logic and ensuring every merged value carries proper provenance.",
+    "competitors": [
+      { "system": "PostgreSQL", "approach": "ON CONFLICT clauses or application-level retry loops", "limitation": "No confidence awareness; last-write-wins or application must implement custom merge" },
+      { "system": "CockroachDB", "approach": "MVCC with transaction retries", "limitation": "Conflict resolution is binary (commit/abort), no confidence merging" },
+      { "system": "Riak", "approach": "Vector clocks + sibling resolution", "limitation": "Application must resolve siblings; no built-in confidence semantics" },
+      { "system": "DynamoDB", "approach": "Last-writer-wins or conditional writes", "limitation": "No confidence metadata; application handles all conflict logic" }
+    ]
+  },
+  "evidence": [
+    { "label": "CABM merge logic", "path": "trustdb/src/merge/" },
+    { "label": "MPCI implementation", "path": "trustdb/src/merge/mpci.rs" },
+    { "label": "B-epsilon flush integration", "path": "trustdb/src/tree/flush.rs" },
+    { "label": "Benchmark report", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["confidence-envelopes", "temporal-decay", "b-epsilon-tree"],
+  "pillarsAffected": ["reliability", "performance", "efficiency"]
+}

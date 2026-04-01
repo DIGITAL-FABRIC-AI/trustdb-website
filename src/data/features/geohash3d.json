@@ -1,0 +1,57 @@
+{
+  "slug": "geohash3d",
+  "name": "3D Geospatial Hashing",
+  "category": "Cross-Modal Query",
+  "status": "implemented",
+  "overview": "TrustDB implements 3D geospatial hashing that encodes latitude, longitude, and elevation into a single sortable key. This enables spatial queries (proximity, bounding box, jurisdiction lookup) directly on the B-epsilon tree without a separate spatial index. Encoding runs at 34.7ns, decoding at 28.2ns, and jurisdiction lookup at 1.63\u00b5s per 100 points.",
+  "howItWorks": [
+    { "step": "1", "title": "3D Encoding", "description": "Coordinates (lat, lon, elevation) are interleaved into a single 64-bit or 128-bit hash using a Z-order curve extended to three dimensions. The resulting key preserves spatial locality \u2014 nearby 3D points produce nearby hash values." },
+    { "step": "2", "title": "B-epsilon Integration", "description": "Geohash keys are stored as regular B-epsilon tree keys. Range scans on the tree correspond to spatial bounding box queries. Prefix matching on the hash corresponds to spatial proximity queries at configurable precision." },
+    { "step": "3", "title": "Jurisdiction Lookup", "description": "Pre-computed jurisdiction boundaries are encoded as geohash prefix sets. Point-in-jurisdiction tests reduce to prefix matching against the boundary set, running at 1.63\u00b5s per 100 points including governance checks." },
+    { "step": "4", "title": "Governance Integration", "description": "Spatial queries automatically inherit CBAC clearance filtering. A user without jurisdiction clearance cannot even enumerate entities within that jurisdiction's geohash prefix range." }
+  ],
+  "benchmarks": [
+    {
+      "name": "3D Encode Latency",
+      "value": "34.7ns",
+      "target": "<100ns",
+      "met": true,
+      "comparisons": [
+        { "system": "H3 (2D only)", "value": "~50ns", "source": "Hexagonal hierarchical; no elevation support" },
+        { "system": "PostGIS ST_GeoHash", "value": "~200ns", "source": "2D only; PostgreSQL function call overhead" }
+      ]
+    },
+    {
+      "name": "3D Decode Latency",
+      "value": "28.2ns",
+      "target": "<100ns",
+      "met": true
+    },
+    {
+      "name": "Jurisdiction Lookup (100 points)",
+      "value": "1.63\u00b5s",
+      "target": "<10\u00b5s",
+      "met": true,
+      "comparisons": [
+        { "system": "PostGIS ST_Within", "value": "~50-200\u00b5s per point", "source": "Full polygon intersection test" },
+        { "system": "H3 polyfill", "value": "~5-20\u00b5s per point", "source": "Cell-boundary intersection" }
+      ]
+    }
+  ],
+  "comparisons": {
+    "narrative": "PostGIS is the gold standard for geospatial queries and supports far more spatial operations (arbitrary polygons, spatial joins, routing). TrustDB's geohash3D is intentionally narrower \u2014 it supports point-based queries, bounding boxes, and jurisdiction lookups, but not arbitrary polygon operations. The advantage is zero separate index overhead, native 3D support (elevation matters for wellbore and subsurface data), and automatic governance integration.",
+    "competitors": [
+      { "system": "PostGIS", "approach": "Full spatial engine with R-tree indexes, geometry/geography types", "limitation": "Separate extension; 2D-primary (3D via SFCGAL addon); no governance integration; orders of magnitude slower for simple point queries" },
+      { "system": "H3 (Uber)", "approach": "Hexagonal hierarchical spatial index", "limitation": "2D only (no elevation); library, not database-integrated; no governance" },
+      { "system": "S2 (Google)", "approach": "Spherical geometry with cell-based indexing", "limitation": "2D surface only; no elevation; library-level, requires application integration" },
+      { "system": "MongoDB Geospatial", "approach": "2dsphere and 2d indexes with GeoJSON", "limitation": "2D only; separate index from document store; no governance filtering" }
+    ]
+  },
+  "evidence": [
+    { "label": "Geohash3D encoder", "path": "trustdb/src/spatial/geohash3d.rs" },
+    { "label": "Jurisdiction lookup", "path": "trustdb/src/spatial/jurisdiction.rs" },
+    { "label": "Benchmark results", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["cross-modal-queries", "cbac", "graph-edges"],
+  "pillarsAffected": ["performance", "connectivity", "security"]
+}

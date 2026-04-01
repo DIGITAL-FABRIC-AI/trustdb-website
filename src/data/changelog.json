@@ -1,0 +1,161 @@
+[
+  {
+    "date": "2026-03-31",
+    "version": "0.1.0-nvm",
+    "title": "NVM-Aware Persistence Engine (22 PRs)",
+    "tags": [
+      "performance",
+      "efficiency",
+      "reliability"
+    ],
+    "entries": [
+      "trustdb-nvm crate: 26 source files, ~11K lines, 214 tests — full hardware-aware persistence stack",
+      "Three-tier epoch persistence: Tier 1 dc cvap (~50ns), Tier 2 msync (~50µs), Tier 3 F_FULLFSYNC (~15ms)",
+      "Platform fences: ARM64 dc cvap/dsb/PRFM inline assembly + x86_64 CLFLUSHOPT/SFENCE/_mm_prefetch",
+      "Hardware auto-detection: Apple Silicon (FEAT_DPB), Graviton4 (Neoverse V2), x86_64 (CPUID)",
+      "MmapBackend: two-region hot/cold layout for LPDDR5X PASR bank idling",
+      "EpochWalWriter: WAL elimination from hot path (3,000x storage energy reduction)",
+      "CentralHashBuffer: WALSH-inspired wait-free concurrent append buffer",
+      "Adaptive config switching: auto Point-Hot/Scan-Hot based on scan ratio (41x range scan improvement)",
+      "Per-thread write coalescer: 8-10x fewer CAS operations for hot-key workloads",
+      "Confidence-weighted persistence: durable (>=0.8) vs soft-durable (<0.8) tiers",
+      "APFS CoW-aware crash recovery: O(1) superblock, e-1 recovery on APFS, e-2 on generic FS",
+      "Windows optimizations: VirtualLock, NUMA VirtualAllocExNuma, FlushViewOfFile control",
+      "Graviton ARM64 Fargate migration: 20% cost reduction, 30% performance improvement",
+      "Software prefetch: ARM64 PRFM + x86 _mm_prefetch for tree traversal",
+      "mmap hints: THP, MADV_RANDOM, MADV_SEQUENTIAL, MADV_WILLNEED per region",
+      "SystemProfile: full device/environment/power metadata on every benchmark result",
+      "Messaging demo workload generator + benchmark suite with comparison reports"
+    ]
+  },
+  {
+    "date": "2026-03-31",
+    "version": "Phase 4",
+    "title": "TEP Exchange Protocol — Lane A semantic foundation complete",
+    "description": "TrustDB Exchange Protocol (TEP) semantic foundation implemented: View<T> three-state returns (Present/ExpectedAbsent/Unknown), EBP state machine (Explore/Provisional/Commit with storage-enforced transitions), AssertionMeta (entropy + OCSS offline metadata), SyncEnvelope/SyncDelta universal exchange types, GovernanceArtifact with Blake3 integrity (compliance by construction). 5 files, 2,185 LOC, 51 tests. Wikai coordination entity created with 21 worknodes across 5 lanes for multi-session parallel build.",
+    "pillarsAffected": [
+      "connectivity"
+    ],
+    "tags": [
+      "architecture",
+      "milestone",
+      "api"
+    ]
+  },
+  {
+    "date": "2026-03-31",
+    "version": "Phase 3.1",
+    "title": "Scorecard website launched",
+    "description": "First version of the TrustDB scorecard tracking all 6 pillars with deep-dive documentation.",
+    "pillarsAffected": [],
+    "tags": [
+      "milestone"
+    ]
+  },
+  {
+    "date": "2026-03-30",
+    "version": "Phase 3",
+    "title": "Final benchmark suite complete",
+    "description": "17 workloads measured across KV, search, spatial, graph, cross-modal, and power efficiency. All benchmarks on SimulatedIo and FileIo backends.",
+    "pillarsAffected": [
+      "performance",
+      "efficiency"
+    ],
+    "tags": [
+      "benchmark",
+      "milestone"
+    ]
+  },
+  {
+    "date": "2026-03-30",
+    "version": "Phase 3",
+    "title": "GEMVT zone map pruning",
+    "description": "Governance-Embedded MVCC Version Tokens with zone map pruning for governance-aware subtree skipping. Eliminates scanning irrelevant branches during confidence-filtered queries.",
+    "pillarsAffected": [
+      "performance",
+      "efficiency"
+    ],
+    "tags": [
+      "feature",
+      "architecture"
+    ]
+  },
+  {
+    "date": "2026-03-29",
+    "version": "Phase 3",
+    "title": "B-epsilon tuning grid optimization",
+    "description": "Systematic tuning grid across epsilon (0.4, 0.6, 0.8) and flush_threshold (0-8192). Optimal config: threshold=8192, epsilon=0.8 at 8,616 ops/s (+11% over default).",
+    "pillarsAffected": [
+      "performance"
+    ],
+    "tags": [
+      "benchmark"
+    ]
+  },
+  {
+    "date": "2026-03-29",
+    "version": "Phase 3",
+    "title": "Phase 3 optimizations deployed",
+    "description": "flush_threshold optimization, Ref-to-UUID read-through cache (+3.5x), cascade batch APIs (+20-46%), BTreeMap range boundary fix, pre-serialize root split for 500+ scale.",
+    "pillarsAffected": [
+      "performance",
+      "reliability"
+    ],
+    "tags": [
+      "feature",
+      "fix"
+    ]
+  },
+  {
+    "date": "2026-03-29",
+    "version": "Phase 3",
+    "title": "Apple Silicon power measurements",
+    "description": "QoS-based E-core pinning achieves 9.1x lower CPU power than SQLite WAL+NORMAL. 384mW (Tier 1 + QoS:BACKGROUND) vs 3,995mW (SQLite).",
+    "pillarsAffected": [
+      "efficiency"
+    ],
+    "tags": [
+      "benchmark",
+      "milestone"
+    ]
+  },
+  {
+    "date": "2026-03-28",
+    "version": "Phase 1",
+    "title": "Phase 1 proof-of-concept benchmarks",
+    "description": "Initial SimulatedIo benchmarks: 12K write ops/s, 53.8K read ops/s, 24.7K mixed 80/20 ops/s. Baseline established.",
+    "pillarsAffected": [
+      "performance"
+    ],
+    "tags": [
+      "benchmark"
+    ]
+  },
+  {
+    "date": "2026-03-28",
+    "version": "Phase 1",
+    "title": "678 tests passing, 0 failures",
+    "description": "124 unit tests, 40 integration tests, 10K DST crash recovery sequences, 1K WAL recovery sequences, 13/13 DB-Gym resilience tests. All passing.",
+    "pillarsAffected": [
+      "reliability"
+    ],
+    "tags": [
+      "milestone"
+    ]
+  },
+  {
+    "date": "2026-03-27",
+    "version": "Core",
+    "title": "35+ module architecture complete",
+    "description": "Full module inventory wired: tree, primitives, WAL, transactions, storage, store, merge, search, spatial, query, execution, offline, RRMS, SNBR, MAECA, cascade, TCI, edges, and more.",
+    "pillarsAffected": [
+      "performance",
+      "reliability",
+      "efficiency"
+    ],
+    "tags": [
+      "architecture",
+      "milestone"
+    ]
+  }
+]

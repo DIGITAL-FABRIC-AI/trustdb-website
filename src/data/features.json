@@ -1,0 +1,196 @@
+{
+  "categories": [
+    {
+      "name": "Epistemic Storage",
+      "description": "Confidence, provenance, and temporal decay as first-class storage primitives",
+      "features": [
+        {
+          "slug": "confidence-envelopes",
+          "name": "Confidence Envelopes",
+          "tagline": "Every value carries confidence metadata maintained by the engine, not computed at read time",
+          "status": "implemented"
+        },
+        {
+          "slug": "temporal-decay",
+          "name": "Temporal Decay (TDQP)",
+          "tagline": "Belief confidence automatically decays as a function of time without application intervention",
+          "status": "implemented"
+        },
+        {
+          "slug": "cabm",
+          "name": "Confidence-Aware Buffer Merge",
+          "tagline": "B-epsilon flush applies temporal decay and confidence inheritance, not just data compaction",
+          "status": "implemented"
+        },
+        {
+          "slug": "provenance-chains",
+          "name": "Provenance Chains",
+          "tagline": "Every entity carries a full history of who/what/when, queryable without joins",
+          "status": "implemented"
+        },
+        {
+          "slug": "snbr",
+          "name": "Storage-Native Belief Revision",
+          "tagline": "Bayesian belief updates happen at the storage layer, not in application code",
+          "status": "implemented"
+        },
+        {
+          "slug": "rrms",
+          "name": "Retrieval-Reinforced Memory",
+          "tagline": "Frequently accessed knowledge strengthens; unused knowledge decays naturally",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "Security & Governance",
+      "description": "Cryptographic access control, governance-bound encryption, and post-quantum readiness",
+      "features": [
+        {
+          "slug": "cbac",
+          "name": "CBAC (6-State Circuit Breaker)",
+          "tagline": "Governance state machine with CAS semantics controlling all data access transitions",
+          "status": "implemented"
+        },
+        {
+          "slug": "rdkc",
+          "name": "RDKC (Governance-Bound Keys)",
+          "tagline": "Per-page encryption keys derived from governance state \u2014 unauthorized decryption is mathematically impossible",
+          "status": "implemented"
+        },
+        {
+          "slug": "rewg",
+          "name": "REWG (Graph-Derived Entitlements)",
+          "tagline": "Access rights derived from graph position via bitwise AND inheritance, not ACL tables",
+          "status": "implemented"
+        },
+        {
+          "slug": "eacb-frost",
+          "name": "EACB (FROST Threshold Signatures)",
+          "tagline": "N-of-M human-in-the-loop authorization for autonomous operations using distributed key shares",
+          "status": "implemented"
+        },
+        {
+          "slug": "post-quantum-keys",
+          "name": "Post-Quantum Key Transport",
+          "tagline": "ML-KEM-1024 + X25519 hybrid key encapsulation aligned with CNSA 2.0",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "Cross-Modal Query",
+      "description": "KV, graph, spatial, and full-text search in a single engine with zero serialization",
+      "features": [
+        {
+          "slug": "cross-modal-queries",
+          "name": "Cross-Modal Query Engine",
+          "tagline": "Span KV, graph, GIS, and search in a single query \u2014 182\u00b5s vs 15-60ms for a 3-system stack",
+          "status": "implemented"
+        },
+        {
+          "slug": "full-text-search",
+          "name": "Full-Text Search (CWBM25)",
+          "tagline": "Confidence-weighted BM25 ranking with field tokenization, inline with the storage engine",
+          "status": "implemented"
+        },
+        {
+          "slug": "geohash3d",
+          "name": "GeoHash3D Spatial Indexing",
+          "tagline": "3D geospatial hashing at 35ns encode, jurisdiction lookups at 1.63\u00b5s for 100 points",
+          "status": "implemented"
+        },
+        {
+          "slug": "graph-edges",
+          "name": "First-Class Graph Edges",
+          "tagline": "11 canonical edge types with typed filtering at 47,600 edges/sec creation throughput",
+          "status": "implemented"
+        },
+        {
+          "slug": "depth-bounded-retrieval",
+          "name": "Depth-Bounded Retrieval (DBRG)",
+          "tagline": "Graph traversal with configurable depth limits and confidence floor pruning",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "Storage Engine",
+      "description": "B-epsilon tree core with write-ahead logging, MVCC transactions, and copy-on-write semantics",
+      "features": [
+        {
+          "slug": "b-epsilon-tree",
+          "name": "B-Epsilon Tree",
+          "tagline": "Write-optimized tree structure with adaptive epsilon tuning and sorted BTreeMap buffers",
+          "status": "implemented"
+        },
+        {
+          "slug": "wal-group-commit",
+          "name": "WAL + Group Commit",
+          "tagline": "Write-ahead logging with batched commits for 8-10x throughput improvement",
+          "status": "implemented"
+        },
+        {
+          "slug": "cow-mvcc",
+          "name": "CoW MVCC Transactions",
+          "tagline": "Copy-on-write snapshots with Serializable Snapshot Isolation \u2014 readers never block writers",
+          "status": "implemented"
+        },
+        {
+          "slug": "gemvt",
+          "name": "GEMVT Zone Map Pruning",
+          "tagline": "Governance-embedded version tokens with zone maps for subtree skipping during filtered queries",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "Federation & Sync",
+      "description": "Multi-device mesh with clearance-enforced synchronization and offline operation",
+      "features": [
+        {
+          "slug": "fwga-federation",
+          "name": "FWGA (5-Tier Mesh)",
+          "tagline": "Federated world graph with 5 device tiers, clearance-aware sync, and quorum-as-confidence",
+          "status": "implemented"
+        },
+        {
+          "slug": "ocss-offline",
+          "name": "OCSS (Offline Confidence Stamping)",
+          "tagline": "Disconnected operation with 4-phase sync protocol and confidence-aware conflict resolution",
+          "status": "implemented"
+        },
+        {
+          "slug": "conflict-resolution",
+          "name": "Conflict Resolution Pipeline",
+          "tagline": "4-way classification with conflict queue, snapshot archival, and clearance-enforced resolution",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "Efficiency & Hardware",
+      "description": "Platform-aware optimizations for power, memory, and computational efficiency",
+      "features": [
+        {
+          "slug": "apple-silicon-qos",
+          "name": "Apple Silicon QoS",
+          "tagline": "E-core pinning via pthread QoS achieves 9.1x lower power than SQLite on Apple Silicon",
+          "status": "implemented"
+        },
+        {
+          "slug": "dynamic-value-codec",
+          "name": "DynamicValue Codec",
+          "tagline": "Format-tagged encoding (Bincode/JSON) with 3.3% overhead and 49x cheaper governance than app-layer",
+          "status": "implemented"
+        },
+        {
+          "slug": "adaptive-epsilon",
+          "name": "Adaptive Epsilon Tuning",
+          "tagline": "Runtime B-epsilon parameter adjustment balancing write amplification against read latency",
+          "status": "implemented"
+        }
+      ]
+    }
+  ]
+}

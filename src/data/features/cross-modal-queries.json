@@ -1,0 +1,68 @@
+{
+  "slug": "cross-modal-queries",
+  "name": "Cross-Modal Query Engine",
+  "category": "Cross-Modal Query",
+  "status": "implemented",
+  "overview": "TrustDB's defining differentiator: queries that span KV lookups, graph traversals, spatial filters, and full-text search execute in a single engine with zero serialization boundaries. A full_well_onboarding query spanning all 4 modalities completes in 182\u00b5s \u2014 82-330x faster than equivalent queries on a PostGIS + Neo4j + Elasticsearch stack that requires 3 network hops and 3 serialization round-trips.",
+  "howItWorks": [
+    { "step": "1", "title": "Composable Primitives", "description": "The Lens API provides composable query building blocks: confidence-filtered, temporal, graph traversal, spatial, and search. These are Rust functions, not a string-based query language." },
+    { "step": "2", "title": "In-Process Execution", "description": "All modalities share the same B-epsilon tree storage. A spatial query feeds directly into a graph traversal which feeds into a search \u2014 all in the same process, same memory space, zero serialization." },
+    { "step": "3", "title": "Cascadeable Operations", "description": "Results from one modality automatically carry their confidence envelopes into the next. A spatial filter that narrows to 10 points passes those points (with confidence) directly to a graph traversal." },
+    { "step": "4", "title": "Zero Handoff Cost", "description": "Traditional stacks pay 5-20ms per system boundary (network + serialize + deserialize + query plan). TrustDB pays only the CPU cost of the operation itself." }
+  ],
+  "benchmarks": [
+    {
+      "name": "spatial_then_graph",
+      "value": "1.96ms",
+      "target": "<5ms",
+      "met": true,
+      "comparisons": [
+        { "system": "PostGIS \u2192 Neo4j", "value": "10\u201330ms", "source": "Network hop + serialization" }
+      ]
+    },
+    {
+      "name": "graph_then_search",
+      "value": "1.05ms",
+      "target": "<5ms",
+      "met": true,
+      "comparisons": [
+        { "system": "Neo4j \u2192 Elasticsearch", "value": "8\u201325ms", "source": "Network hop + JSON parse" }
+      ]
+    },
+    {
+      "name": "cascade_then_spatial",
+      "value": "7.03\u00b5s",
+      "target": "<100\u00b5s",
+      "met": true,
+      "comparisons": [
+        { "system": "App-layer cascade + PostGIS", "value": "5\u201320ms" }
+      ]
+    },
+    {
+      "name": "full_well_onboarding (KV+Graph+GIS+Search)",
+      "value": "182\u00b5s",
+      "target": "<1ms",
+      "met": true,
+      "comparisons": [
+        { "system": "PostGIS + Neo4j + Elasticsearch", "value": "15\u201360ms", "source": "3 hops, 3 serializations" },
+        { "system": "Reduction factor", "value": "82\u2013330x faster" }
+      ]
+    }
+  ],
+  "comparisons": {
+    "narrative": "The fundamental insight: cross-modal query latency is dominated by system boundaries (network + serialization), not computation. By unifying all modalities in one engine, TrustDB eliminates the dominant cost factor.",
+    "competitors": [
+      { "system": "PostGIS + Neo4j + ES", "approach": "Three separate databases connected by application code", "limitation": "15-60ms per cross-modal query due to 3 network hops and serialization" },
+      { "system": "SurrealDB", "approach": "Multi-model database with SQL-like query language", "limitation": "No confidence semantics, no governance, newer/less proven" },
+      { "system": "ArangoDB", "approach": "Multi-model (document + graph + search)", "limitation": "No spatial, no confidence, traditional RBAC not cryptographic" },
+      { "system": "FaunaDB", "approach": "Distributed document-relational with GraphQL", "limitation": "Cloud-only, no embedded mode, no spatial, no confidence" }
+    ]
+  },
+  "evidence": [
+    { "label": "Cross-Modal Benchmarks", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" },
+    { "label": "Lens API Design", "path": "Research/TrustDB/Ambient Knowledge/" },
+    { "label": "PostGIS vs TrustDB Analysis", "path": "Research/TrustDB/postgis_vs_trustdb" }
+  ],
+  "relatedFeatures": ["full-text-search", "geohash3d", "graph-edges", "depth-bounded-retrieval"],
+  "pillarsAffected": ["performance", "efficiency"]
+}

@@ -1,0 +1,60 @@
+{
+  "slug": "full-text-search",
+  "name": "Confidence-Weighted BM25 (CWBM25)",
+  "category": "Cross-Modal Query",
+  "status": "implemented",
+  "overview": "TrustDB implements BM25 full-text search with confidence weighting directly in the storage engine. Document scores are modulated by the confidence envelope of each section, so high-confidence documents rank higher than low-confidence ones at equal textual relevance. This runs inline with storage reads \u2014 no separate search index service required.",
+  "howItWorks": [
+    { "step": "1", "title": "Inverted Index", "description": "A compact inverted index is maintained alongside the B-epsilon tree. Tokens are mapped to posting lists containing document IDs, term frequencies, and references to the source LeafEntry. The index is updated during B-epsilon flush operations." },
+    { "step": "2", "title": "BM25 Scoring", "description": "Standard BM25 scoring computes term frequency, inverse document frequency, and field length normalization. Parameters k1=1.2 and b=0.75 are tuned for the typical section-length distribution." },
+    { "step": "3", "title": "Confidence Weighting", "description": "The raw BM25 score is multiplied by the section's current confidence (after TDQP decay). This means a highly relevant but low-confidence document ranks below a moderately relevant high-confidence one." },
+    { "step": "4", "title": "Inline Execution", "description": "Search executes within the storage engine process \u2014 no serialization, network calls, or index synchronization. The inverted index shares the same MVCC snapshot as the data read." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Throughput (100 sections)",
+      "value": "12,050 queries/sec",
+      "target": ">10,000/sec",
+      "met": true,
+      "comparisons": [
+        { "system": "Elasticsearch (100 docs)", "value": "~50,000 queries/sec", "source": "Optimized for search; faster at pure text retrieval" },
+        { "system": "SQLite FTS5 (100 docs)", "value": "~20,000 queries/sec", "source": "Embedded, no confidence weighting" }
+      ]
+    },
+    {
+      "name": "Throughput (1K sections)",
+      "value": "1,095 queries/sec",
+      "target": ">500/sec",
+      "met": true,
+      "comparisons": [
+        { "system": "Elasticsearch (1K docs)", "value": "~15,000 queries/sec", "source": "Purpose-built search engine; significantly faster at scale" },
+        { "system": "Tantivy (1K docs)", "value": "~8,000 queries/sec", "source": "Rust-native search library; faster but no confidence integration" }
+      ]
+    },
+    {
+      "name": "Index Sync Lag",
+      "value": "0 (inline, same MVCC snapshot)",
+      "target": "0",
+      "met": true,
+      "comparisons": [
+        { "system": "Elasticsearch", "value": "1s (default refresh interval)", "source": "Near-real-time but not instantaneous" }
+      ]
+    }
+  ],
+  "comparisons": {
+    "narrative": "TrustDB's full-text search is deliberately not trying to beat Elasticsearch at pure search throughput \u2014 at 1K documents, Elasticsearch is roughly 14x faster. The value proposition is different: CWBM25 provides confidence-weighted ranking with zero index synchronization lag, all within a single storage engine. For use cases where confidence-aware search matters more than raw query throughput, this eliminates the operational complexity of running a separate search cluster.",
+    "competitors": [
+      { "system": "Elasticsearch", "approach": "Distributed inverted index with BM25 and custom scoring", "limitation": "Separate service to operate; index sync lag; no native confidence weighting (requires custom script_score)" },
+      { "system": "Tantivy", "approach": "Rust-native search library (Lucene equivalent)", "limitation": "Library, not integrated storage; no confidence envelopes; application must manage index lifecycle" },
+      { "system": "PostgreSQL FTS", "approach": "tsvector/tsquery with GIN indexes", "limitation": "No BM25 (uses ts_rank); no confidence weighting; separate index maintenance" },
+      { "system": "Meilisearch", "approach": "Typo-tolerant search optimized for instant results", "limitation": "Separate service; no confidence semantics; designed for user-facing search, not data retrieval" }
+    ]
+  },
+  "evidence": [
+    { "label": "CWBM25 implementation", "path": "trustdb/src/search/cwbm25.rs" },
+    { "label": "Inverted index", "path": "trustdb/src/search/inverted_index.rs" },
+    { "label": "Benchmark results", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["confidence-envelopes", "temporal-decay", "cross-modal-queries"],
+  "pillarsAffected": ["performance", "reliability", "efficiency"]
+}

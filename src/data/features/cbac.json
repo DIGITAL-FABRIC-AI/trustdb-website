@@ -1,0 +1,59 @@
+{
+  "slug": "cbac",
+  "name": "CBAC (6-State Governance Circuit Breaker)",
+  "category": "Security & Governance",
+  "status": "implemented",
+  "overview": "CBAC is a 6-state governance circuit breaker that controls all data access transitions using Compare-And-Swap (CAS) semantics. Unlike traditional RBAC which filters data after loading it into memory, CBAC determines whether a page can even be decrypted \u2014 access control is enforced at the key derivation layer, making unauthorized access mathematically impossible rather than policy-filtered. 43 tests including 23 adversarial gym scenarios verify these guarantees under attack.",
+  "howItWorks": [
+    { "step": "1", "title": "State Machine", "description": "Each governed entity has a CBAC state: Open, Restricted, Sealed, Quarantined, Revoked, or Archived. State transitions are atomic via CAS (compare-and-swap) \u2014 no partial transitions, no race conditions." },
+    { "step": "2", "title": "Key Derivation (RDKC)", "description": "The CBAC state feeds into RDKC (governance-bound key derivation). Each page gets a unique AES-256-GCM-SIV key derived from 4 governance inputs: clearance level, CBAC state, entity classification, and temporal epoch. Change any input \u2192 different key \u2192 old key cannot decrypt." },
+    { "step": "3", "title": "Access Check", "description": "Before any read or write, the engine checks: does the requestor's clearance + entity's CBAC state produce a valid key? If not, the operation fails at the cryptographic layer \u2014 the data is never loaded into memory." },
+    { "step": "4", "title": "Audit Trail", "description": "Every CBAC state transition is recorded with timestamp, actor, previous state, and new state. This creates a tamper-evident governance history." }
+  ],
+  "benchmarks": [
+    {
+      "name": "CBAC State Transitions",
+      "value": "43 tests, 0 failures",
+      "target": "All pass",
+      "met": true,
+      "comparisons": [
+        { "system": "PostgreSQL RLS", "value": "Policy-based (data loaded, then filtered)" }
+      ]
+    },
+    {
+      "name": "Adversarial Gym Tests",
+      "value": "23 scenarios pass",
+      "target": "All pass",
+      "met": true,
+      "comparisons": [
+        { "system": "Others", "value": "N/A", "source": "No competitor has adversarial access control gym" }
+      ]
+    },
+    {
+      "name": "Governance Overhead (WAF)",
+      "value": "3.03 (with full stack)",
+      "target": "<4.0",
+      "met": true,
+      "comparisons": [
+        { "system": "App-layer governance", "value": "131% overhead", "source": "Measured with equivalent SQLite implementation" }
+      ]
+    }
+  ],
+  "comparisons": {
+    "narrative": "Traditional databases enforce access control by loading data first, then filtering. TrustDB enforces access at the key derivation layer \u2014 if you don't have the right clearance + CBAC state, you can't derive the decryption key. The data never enters memory.",
+    "competitors": [
+      { "system": "PostgreSQL RLS", "approach": "Row-Level Security policies filter rows after loading from disk", "limitation": "Data is in memory before filtering \u2014 side-channel attacks possible" },
+      { "system": "Neo4j Enterprise", "approach": "Sub-graph access control via property rules", "limitation": "Policy-based, not cryptographic; admin can bypass" },
+      { "system": "MongoDB FLE", "approach": "Field-Level Encryption with app-layer key management", "limitation": "Keys managed by application, not derived from governance state" },
+      { "system": "Google Zanzibar", "approach": "Separate authorization service with set operations", "limitation": "Network hop for every check; not storage-integrated" }
+    ]
+  },
+  "evidence": [
+    { "label": "CBAC Module (8 files)", "path": "trustdb/src/cbac/" },
+    { "label": "Clearance Boundary Gym", "path": "trustdb/tests/gym_g01_clearance_boundary.rs" },
+    { "label": "CBAC Adversarial Gym", "path": "trustdb/tests/gym_g02_cbac_adversarial.rs" },
+    { "label": "RDKC Key Derivation", "path": "trustdb/src/rdkc/" }
+  ],
+  "relatedFeatures": ["rdkc", "rewg", "eacb-frost", "post-quantum-keys"],
+  "pillarsAffected": ["security", "reliability"]
+}

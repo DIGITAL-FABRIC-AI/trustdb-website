@@ -1,0 +1,58 @@
+{
+  "slug": "graph-edges",
+  "name": "Canonical Edge Types",
+  "category": "Cross-Modal Query",
+  "status": "implemented",
+  "overview": "TrustDB defines 11 canonical edge types that cover the full spectrum of entity relationships: structural, semantic, temporal, spatial, governance, and epistemic. Edges are first-class storage primitives with their own confidence envelopes, provenance chains, and CBAC governance. Edge creation runs at 47,600 edges/sec and typed filter queries at 176\u00b5s.",
+  "howItWorks": [
+    { "step": "1", "title": "Edge Type System", "description": "11 canonical types: CONTAINS, REFERENCES, DERIVED_FROM, TEMPORAL_SEQUENCE, SPATIAL_PROXIMITY, CLASSIFIES, GOVERNS, CONFLICTS_WITH, SUPPORTS, SUPERSEDES, CO_OCCURS. Each type has defined semantics, directionality, and cardinality constraints." },
+    { "step": "2", "title": "Storage as Primitives", "description": "Edges are stored in the B-epsilon tree as EdgeEntry records, keyed by (source_id, edge_type, target_id). This enables efficient prefix scans for 'all edges of type X from entity Y' without a separate graph index." },
+    { "step": "3", "title": "Confidence & Governance", "description": "Each edge carries its own ConfidenceEnvelope (edge confidence can differ from node confidence) and inherits governance from both endpoints via REWG bitwise intersection." },
+    { "step": "4", "title": "Typed Filter Query", "description": "Querying edges by type uses the B-epsilon tree's prefix scan on (source_id, edge_type). The 176\u00b5s filter time includes CBAC clearance checks on both the edge and target entity." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Edge Creation Throughput",
+      "value": "47,600 edges/sec",
+      "target": ">10,000/sec",
+      "met": true,
+      "comparisons": [
+        { "system": "Neo4j", "value": "~100,000-200,000 edges/sec (batch)", "source": "Purpose-built graph DB; faster for pure graph writes" },
+        { "system": "DGraph", "value": "~50,000-150,000 edges/sec", "source": "Distributed graph; comparable single-node throughput" }
+      ]
+    },
+    {
+      "name": "Typed Filter Query",
+      "value": "176\u00b5s",
+      "target": "<500\u00b5s",
+      "met": true,
+      "comparisons": [
+        { "system": "Neo4j (typed traversal)", "value": "~50-200\u00b5s", "source": "Native graph storage; comparable performance" },
+        { "system": "PostgreSQL (join-based)", "value": "~1-10ms", "source": "Requires JOIN on edge table + type filter" }
+      ]
+    },
+    {
+      "name": "Edge with Confidence Overhead",
+      "value": "+15% vs plain edge",
+      "target": "<25%",
+      "met": true
+    }
+  ],
+  "comparisons": {
+    "narrative": "Neo4j and DGraph are faster at pure graph operations \u2014 they are purpose-built graph databases. TrustDB's graph capability is deliberately integrated into a multi-modal storage engine rather than being a standalone graph DB. The advantage is that graph edges share the same MVCC snapshot, confidence model, and governance layer as all other data. The tradeoff is lower raw graph throughput compared to dedicated graph databases.",
+    "competitors": [
+      { "system": "Neo4j", "approach": "Native graph storage with relationship types and properties", "limitation": "Faster for pure graph ops; but separate system from document/search/spatial stores; no confidence envelopes on relationships" },
+      { "system": "DGraph", "approach": "Distributed graph with schema predicates", "limitation": "Higher throughput at scale; but separate service; no governance-integrated edges" },
+      { "system": "PostgreSQL + Apache AGE", "approach": "Graph extension on relational storage", "limitation": "Cypher support but relational storage underneath; JOIN-based traversal slower than native graph" },
+      { "system": "Amazon Neptune", "approach": "Managed graph service (Gremlin/SPARQL)", "limitation": "Separate managed service; no confidence or governance integration; per-query pricing" }
+    ]
+  },
+  "evidence": [
+    { "label": "Edge type definitions", "path": "trustdb/src/graph/edge_types.rs" },
+    { "label": "EdgeEntry storage", "path": "trustdb/src/graph/edge.rs" },
+    { "label": "Typed filter query", "path": "trustdb/src/graph/query.rs" },
+    { "label": "Benchmark results", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["cross-modal-queries", "rewg", "confidence-envelopes", "depth-bounded-retrieval"],
+  "pillarsAffected": ["connectivity", "performance", "reliability"]
+}

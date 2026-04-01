@@ -1,0 +1,60 @@
+{
+  "slug": "dynamic-value-codec",
+  "name": "Dynamic Value Codec",
+  "category": "Efficiency & Hardware",
+  "status": "implemented",
+  "overview": "TrustDB's Dynamic Value Codec uses format-tagged encoding to serialize values with minimal overhead. Each value carries a format tag (Bincode, JSON, CBOR, custom) and governance metadata is encoded inline rather than in separate columns. Bincode encoding adds only 3.3% overhead; JSON adds 9.2%. Governance encoding is 49x cheaper than equivalent application-layer governance.",
+  "howItWorks": [
+    { "step": "1", "title": "Format Tag", "description": "Each serialized value begins with a 1-byte format tag indicating the encoding format. This enables mixed-format storage within the same tree \u2014 hot paths can use Bincode for speed while human-readable paths use JSON." },
+    { "step": "2", "title": "Inline Governance", "description": "Governance metadata (confidence envelope, clearance requirements, classification) is encoded as part of the value record, not in separate columns or tables. This eliminates join overhead for governance-aware reads." },
+    { "step": "3", "title": "Codec Selection", "description": "The codec is selected per-write based on the caller's preference or a configurable default. Reads auto-detect the format from the tag and deserialize accordingly. This enables seamless format migration." },
+    { "step": "4", "title": "Zero-Copy Paths", "description": "For Bincode format, the codec supports zero-copy deserialization where possible \u2014 pointers into the memory-mapped page are returned directly without copying data. This eliminates allocation overhead for read-heavy workloads." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Bincode Encoding Overhead",
+      "value": "3.3%",
+      "target": "<10%",
+      "met": true,
+      "comparisons": [
+        { "system": "Protocol Buffers", "value": "~5-8%", "source": "Schema-dependent; includes field tags" },
+        { "system": "MessagePack", "value": "~4-6%", "source": "Self-describing format; slightly larger than Bincode" }
+      ]
+    },
+    {
+      "name": "JSON Encoding Overhead",
+      "value": "9.2%",
+      "target": "<15%",
+      "met": true,
+      "comparisons": [
+        { "system": "PostgreSQL JSONB", "value": "~15-25%", "source": "Includes decomposed binary JSON structure" }
+      ]
+    },
+    {
+      "name": "Governance Encoding Cost",
+      "value": "49x cheaper than app-layer",
+      "target": ">10x cheaper",
+      "met": true,
+      "comparisons": [
+        { "system": "App-layer governance (SQLite)", "value": "163% overhead", "source": "Extra tables, joins, validation triggers per operation" }
+      ]
+    }
+  ],
+  "comparisons": {
+    "narrative": "The Dynamic Value Codec's main innovation is not the serialization format itself (Bincode is a known Rust serialization library) but the inline governance encoding. By embedding confidence, clearance, and classification directly in the value encoding, TrustDB avoids the join tax that any application-layer governance system must pay. The 49x improvement over app-layer governance is the key benchmark.",
+    "competitors": [
+      { "system": "PostgreSQL JSONB", "approach": "Binary JSON with decomposed key storage for indexing", "limitation": "No inline governance; separate columns for metadata; higher encoding overhead" },
+      { "system": "MongoDB BSON", "approach": "Binary JSON with type-tagged fields", "limitation": "No governance encoding; application must manage separate metadata fields" },
+      { "system": "RocksDB", "approach": "Opaque byte arrays; application handles serialization", "limitation": "No codec assistance; application manages all encoding including governance" },
+      { "system": "FlatBuffers", "approach": "Zero-copy access with schema-compiled accessors", "limitation": "Schema-dependent; no governance awareness; requires code generation" }
+    ]
+  },
+  "evidence": [
+    { "label": "Dynamic Value Codec", "path": "trustdb/src/codec/dynamic_value.rs" },
+    { "label": "Format tag registry", "path": "trustdb/src/codec/format_tag.rs" },
+    { "label": "Governance encoding", "path": "trustdb/src/codec/governance.rs" },
+    { "label": "Benchmark report", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["apple-silicon-qos", "b-epsilon-tree"],
+  "pillarsAffected": ["efficiency", "performance"]
+}

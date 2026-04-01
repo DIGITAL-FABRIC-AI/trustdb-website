@@ -1,0 +1,54 @@
+{
+  "slug": "adaptive-epsilon",
+  "name": "Adaptive Epsilon Tuning",
+  "category": "Efficiency & Hardware",
+  "status": "implemented",
+  "overview": "TrustDB dynamically tunes the B-epsilon tree's epsilon parameter and buffer flush thresholds at runtime based on workload characteristics. The optimal configuration (threshold=8192, epsilon=0.8) achieves 8,616 ops/sec, but the system adapts these values as the read/write ratio and data distribution change. This eliminates the need for manual tree parameter tuning.",
+  "howItWorks": [
+    { "step": "1", "title": "Workload Monitoring", "description": "A lightweight statistics collector tracks the read/write ratio, average write size, buffer fill rates, and flush frequency over a sliding window. These metrics are updated atomically with minimal overhead." },
+    { "step": "2", "title": "Epsilon Adjustment", "description": "The epsilon parameter (controlling the write-buffer-to-fanout tradeoff) is adjusted based on the read/write ratio. Write-heavy workloads increase epsilon (larger buffers, fewer flushes); read-heavy workloads decrease epsilon (smaller buffers, faster point lookups)." },
+    { "step": "3", "title": "Threshold Tuning", "description": "The buffer flush threshold is tuned based on average write size and available memory. Larger writes benefit from lower thresholds (more frequent, smaller flushes); smaller writes benefit from higher thresholds (batched flushes)." },
+    { "step": "4", "title": "Convergence", "description": "Adjustments use exponential moving averages to avoid oscillation. The system converges to stable parameters within ~10 seconds of a workload change and re-adjusts if the workload shifts again." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Optimal Throughput",
+      "value": "8,616 ops/sec (threshold=8192, epsilon=0.8)",
+      "target": ">5,000 ops/sec",
+      "met": true,
+      "comparisons": [
+        { "system": "Static B-epsilon (default params)", "value": "~4,000-5,000 ops/sec", "source": "Default parameters not tuned for workload" },
+        { "system": "RocksDB (auto-tuned)", "value": "~10,000-50,000 ops/sec", "source": "LSM-tree; different write amplification profile; higher throughput for simple KV" }
+      ]
+    },
+    {
+      "name": "Tuning Convergence Time",
+      "value": "~10 seconds",
+      "target": "<30 seconds",
+      "met": true
+    },
+    {
+      "name": "Monitoring Overhead",
+      "value": "<1% CPU",
+      "target": "<2%",
+      "met": true
+    }
+  ],
+  "comparisons": {
+    "narrative": "RocksDB offers extensive tuning knobs (memtable size, L0 file count, compaction strategy) and some auto-tuning via dynamic level size. TrustDB's adaptive epsilon is narrower in scope (B-epsilon-specific parameters) but fully automatic. The 8,616 ops/sec peak is lower than RocksDB's throughput for simple KV workloads, but TrustDB's operations include governance overhead (confidence, clearance, provenance) that RocksDB operations do not carry.",
+    "competitors": [
+      { "system": "RocksDB", "approach": "Manual tuning with 100+ configuration options; some auto-tuning for level sizes", "limitation": "Requires expert tuning for optimal performance; auto-tuning limited to level sizing" },
+      { "system": "WiredTiger (MongoDB)", "approach": "Configurable cache size, checkpoint interval, compaction", "limitation": "Manual tuning; no runtime adaptation to workload changes" },
+      { "system": "LMDB", "approach": "Minimal tuning (map size only); B-tree with fixed structure", "limitation": "No adaptive tuning possible; fixed B-tree fanout" },
+      { "system": "LevelDB", "approach": "Simple compaction with fixed parameters", "limitation": "No runtime tuning; fixed LSM configuration" }
+    ]
+  },
+  "evidence": [
+    { "label": "Adaptive epsilon tuner", "path": "trustdb/src/tree/adaptive_epsilon.rs" },
+    { "label": "Workload statistics", "path": "trustdb/src/stats/workload_monitor.rs" },
+    { "label": "Threshold adjustment", "path": "trustdb/src/tree/flush_threshold.rs" },
+    { "label": "Benchmark results", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["b-epsilon-tree", "apple-silicon-qos"],
+  "pillarsAffected": ["performance", "efficiency"]
+}

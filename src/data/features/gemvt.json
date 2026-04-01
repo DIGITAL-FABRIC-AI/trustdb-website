@@ -1,0 +1,50 @@
+{
+  "slug": "gemvt",
+  "name": "Governance-Embedded MVCC Version Tokens (GEMVT)",
+  "category": "Storage Engine",
+  "status": "implemented",
+  "overview": "GEMVT extends MVCC version tokens to embed governance metadata (classification, clearance requirements, jurisdiction) directly in the version identifier. This enables zone map pruning at the page level \u2014 the storage engine can skip entire pages whose governance envelope doesn't match the reader's clearance, without reading the page contents.",
+  "howItWorks": [
+    { "step": "1", "title": "Token Structure", "description": "Each MVCC version token encodes: transaction ID, timestamp, and a governance fingerprint derived from the page's aggregate classification bitfield. The fingerprint is compact (32-64 bits) and summarizes the governance requirements of all entries on the page." },
+    { "step": "2", "title": "Zone Map Construction", "description": "Page-level zone maps are extended to include governance min/max bounds. The governance fingerprint in the version token acts as a fast pre-filter: if the reader's clearance doesn't intersect the page's governance range, the page is skipped entirely." },
+    { "step": "3", "title": "Pruning at Scan Time", "description": "During range scans, the query engine checks version token governance fingerprints before loading page contents. This eliminates I/O for pages the reader has no clearance to access." },
+    { "step": "4", "title": "CABM Integration", "description": "During B-epsilon flush (CABM), governance fingerprints are recomputed for affected pages. The fingerprint is maintained incrementally \u2014 only the flushed entries' governance bits are merged into the existing page fingerprint." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Zone Map Pruning Rate",
+      "value": "30-70% pages skipped (governance-heavy workloads)",
+      "target": ">25% reduction",
+      "met": true
+    },
+    {
+      "name": "Fingerprint Check Latency",
+      "value": "~3ns per page (single AND + compare)",
+      "target": "<10ns",
+      "met": true
+    },
+    {
+      "name": "Fingerprint Maintenance Overhead",
+      "value": "<2% of flush cost",
+      "target": "<5%",
+      "met": true
+    }
+  ],
+  "comparisons": {
+    "narrative": "Zone maps (min/max statistics per page) are a common optimization in columnar databases like Parquet, DuckDB, and Redshift. GEMVT extends this concept to governance metadata, which is unique to TrustDB. No other database uses access control metadata for I/O pruning \u2014 they filter after reading page contents, which wastes I/O on data the reader can't access.",
+    "competitors": [
+      { "system": "DuckDB", "approach": "Zone maps on value columns for scan pruning", "limitation": "No governance metadata in zone maps; access control is pre-query, not per-page" },
+      { "system": "Apache Parquet", "approach": "Column chunk statistics (min/max/null count)", "limitation": "Value-based only; no security metadata; read-time filtering only" },
+      { "system": "PostgreSQL", "approach": "BRIN indexes for block-range summary", "limitation": "Value-based range indexing; no governance integration; coarser granularity" },
+      { "system": "Redshift", "approach": "Zone maps on sorted columns", "limitation": "Effective for sorted data only; no security-based pruning" }
+    ]
+  },
+  "evidence": [
+    { "label": "GEMVT token implementation", "path": "trustdb/src/txn/gemvt.rs" },
+    { "label": "Governance zone maps", "path": "trustdb/src/tree/zone_maps.rs" },
+    { "label": "Fingerprint computation", "path": "trustdb/src/security/fingerprint.rs" },
+    { "label": "Benchmark report", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["b-epsilon-tree", "cbac", "cabm"],
+  "pillarsAffected": ["performance", "security", "efficiency"]
+}

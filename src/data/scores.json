@@ -1,0 +1,193 @@
+{
+  "lastUpdated": "2026-03-31",
+  "pillars": {
+    "performance": {
+      "name": "Performance",
+      "subtitle": "The Speed & Volume Pillar",
+      "icon": "zap",
+      "overallScore": 8.2,
+      "metrics": {
+        "latency": {
+          "name": "Latency",
+          "score": 8.8,
+          "status": "strong",
+          "summary": "Point write 19.2µs (SimulatedIo), point read 22.1µs. NVM Tier 1 write ~50ns (dc cvap to DRAM). Adaptive config: scan-hot mode 41x range scan improvement (69µs vs 2,825µs). Software prefetch overlaps ~100ns cache miss on tree traversal. Cross-modal onboarding 182µs.",
+          "lastUpdated": "2026-03-31"
+        },
+        "throughput": {
+          "name": "Throughput",
+          "score": 8.3,
+          "status": "strong",
+          "summary": "52,100 write ops/s, 45,200 read ops/s (SimulatedIo). NVM CentralHashBuffer: wait-free concurrent appends via AtomicU64 fetch_add. Per-thread write coalescer: 8-10x fewer CAS ops for hot-key workloads (90% coalesce ratio). Batch write 193,000 ops/s.",
+          "lastUpdated": "2026-03-31"
+        },
+        "concurrency": {
+          "name": "Concurrency",
+          "score": 5.5,
+          "status": "adequate",
+          "summary": "Single-writer MVCC. Read concurrency excellent via CoW snapshots. Multi-writer planned.",
+          "lastUpdated": "2026-03-30"
+        },
+        "queryEfficiency": {
+          "name": "Query Efficiency",
+          "score": 9.0,
+          "status": "excellent",
+          "summary": "Cross-modal queries (KV+Graph+GIS+Search) in 182µs vs 5-20ms traditional 3-system stack.",
+          "lastUpdated": "2026-03-30"
+        }
+      }
+    },
+    "reliability": {
+      "name": "Reliability & Integrity",
+      "subtitle": "The Trust Pillar",
+      "icon": "shield",
+      "overallScore": 9.2,
+      "metrics": {
+        "durability": {
+          "name": "Durability",
+          "score": 9.5,
+          "status": "excellent",
+          "summary": "Dual persistence model: WAL (group commit, CoW pages) + NVM three-tier epoch persistence (Tier 1 dc cvap ~50ns, Tier 2 msync ~50µs, Tier 3 F_FULLFSYNC ~15ms). Platform fences: ARM64 dc cvap/dsb inline assembly + x86_64 CLFLUSHOPT/SFENCE. EpochWalWriter eliminates WAL from hot path. 10,000 DST crash sequences + NVM crash recovery tests (214 NVM tests total).",
+          "lastUpdated": "2026-03-31"
+        },
+        "consistency": {
+          "name": "Consistency",
+          "score": 9.0,
+          "status": "excellent",
+          "summary": "Serializable snapshot isolation (SSI). All reads return consistent committed state.",
+          "lastUpdated": "2026-03-30"
+        },
+        "availability": {
+          "name": "Availability",
+          "score": 7.5,
+          "status": "strong",
+          "summary": "Federated mesh: 5-tier DeviceManifest (6 tests), 6-phase sync protocol (13 unit + 14 integration tests), background SyncWorker (3 async tests), CBAC clearance-enforced conflict classification, PREFIX_CONFLICT_QUEUE + PREFIX_SNAPSHOT storage, quorum-as-confidence thresholds (Well 0.67). 4/5 benchmarks green. Gap: Raft replication scaffold only (1 red).",
+          "lastUpdated": "2026-03-31"
+        },
+        "faultTolerance": {
+          "name": "Fault Tolerance",
+          "score": 9.7,
+          "status": "excellent",
+          "summary": "Auto WAL recovery + NVM O(1) superblock recovery (APFS CoW-aware: recover from e-1). Hardware auto-detection: Apple Silicon, Graviton4, x86_64 selects correct fence instructions. CRC32c checksums on pages and epoch superblock. 1,000 WAL + 7 NVM recovery sequences passed.",
+          "lastUpdated": "2026-03-31"
+        }
+      }
+    },
+    "scalability": {
+      "name": "Scalability & Architecture",
+      "subtitle": "The Growth Pillar",
+      "icon": "trending-up",
+      "overallScore": 6.5,
+      "metrics": {
+        "horizontalVertical": {
+          "name": "Horizontal vs Vertical Scaling",
+          "score": 5.5,
+          "status": "adequate",
+          "summary": "Vertical: single-node B-epsilon tree. Federation: FWGA implemented with 28 sync tests, 6 manifest tests, 3 async worker tests. 5-tier DeviceManifest hierarchy, clearance-enforced sync, quorum-as-confidence (continuous threshold). 2/3 benchmarks green. Gap: Raft horizontal scaling scaffold only (1 red).",
+          "lastUpdated": "2026-03-31"
+        },
+        "dataFootprint": {
+          "name": "Data Footprint",
+          "score": 8.0,
+          "status": "strong",
+          "summary": "WAF 3.04 (constant across configs). Bincode codec 3.3% overhead. Governance 49x cheaper than app-layer.",
+          "lastUpdated": "2026-03-30"
+        },
+        "elasticity": {
+          "name": "Elasticity",
+          "score": 4.5,
+          "status": "needs-work",
+          "summary": "Online device add: zero-downtime via DeviceManifest + sync_with_manifest (scope-filtered gap manifest). Read scaling near-flat (20.2-22.5µs for 10x data). 2/4 benchmarks green. Gaps: device remove protocol, automatic scope-change rebalancing.",
+          "lastUpdated": "2026-03-31"
+        }
+      }
+    },
+    "security": {
+      "name": "Security & Compliance",
+      "subtitle": "The Protection Pillar",
+      "icon": "lock",
+      "overallScore": 7.8,
+      "metrics": {
+        "accessControl": {
+          "name": "Access Control",
+          "score": 8.0,
+          "status": "strong",
+          "summary": "CBAC 6-state circuit breaker + REWG graph-derived entitlements + EACB/FROST threshold signatures. Access control is cryptographic: RDKC governance-bound keys make unauthorized decryption mathematically impossible. 23 adversarial gym tests.",
+          "lastUpdated": "2026-03-31"
+        },
+        "encryption": {
+          "name": "Encryption",
+          "score": 8.5,
+          "status": "strong",
+          "summary": "AES-256-GCM-SIV per-page encryption with governance-bound keys (RDKC). ML-KEM-1024 + X25519 hybrid post-quantum transport. CNSA 2.0 profiles. Structural key expiry. WAF=3.03 (zero governance overhead). 1,784 tests.",
+          "lastUpdated": "2026-03-31"
+        },
+        "auditing": {
+          "name": "Auditing",
+          "score": 7.0,
+          "status": "strong",
+          "summary": "ProvenanceChain on every entity (zero overhead). TCI flush-time co-occurrence. CBAC state transition audit trail. Gap: WAL uses FNV-1a checksum, needs HMAC-SHA384 for tamper-proof audit.",
+          "lastUpdated": "2026-03-31"
+        }
+      }
+    },
+    "efficiency": {
+      "name": "Efficiency & Cost",
+      "subtitle": "The ROI Pillar",
+      "icon": "leaf",
+      "overallScore": 9.4,
+      "metrics": {
+        "resourceUtilization": {
+          "name": "Resource Utilization",
+          "score": 9.0,
+          "status": "excellent",
+          "summary": "B-epsilon tree with adaptive epsilon. NVM two-region mmap (hot/cold) for LPDDR5X PASR bank idling. Adaptive config switching: auto Point-Hot/Scan-Hot based on workload (41x scan improvement). Per-thread write coalescer reduces SoC fabric energy 8-10x. mmap hints: THP for cold region, MADV_RANDOM for hot. Software prefetch on tree traversal. Zone map pruning.",
+          "lastUpdated": "2026-03-31"
+        },
+        "powerConsumption": {
+          "name": "Power Consumption",
+          "score": 9.8,
+          "status": "excellent",
+          "summary": "3,000x NVMe storage energy reduction via LPSR preservation (epoch batching keeps NVMe asleep). 9.1x lower CPU power than SQLite. QoS E-core pinning: 79mW vs 5,200mW P-core. BatteryStateMonitor: adaptive Tier 2 intervals (5ms charging, 500ms low battery, disabled in Low Power Mode). Confidence-weighted persistence: speculative data stays in DRAM only. LPDDR5X PASR via hot/cold mmap separation.",
+          "lastUpdated": "2026-03-31"
+        },
+        "tco": {
+          "name": "Total Cost of Ownership",
+          "score": 9.3,
+          "status": "excellent",
+          "summary": "Zero licensing, embedded. Governance 49x cheaper than traditional stack. Graviton ARM64 Fargate: 20% cost reduction + 30% perf improvement (deployed). Windows VirtualLock + NUMA allocation for desktop optimization.",
+          "lastUpdated": "2026-03-31"
+        }
+      }
+    },
+    "connectivity": {
+      "name": "Connectivity & Ecosystem",
+      "subtitle": "The Integration Pillar",
+      "icon": "link",
+      "overallScore": 3.5,
+      "metrics": {
+        "drivers": {
+          "name": "Drivers & ORMs",
+          "score": 2.0,
+          "status": "critical",
+          "summary": "Rust-only API. No official drivers for Python, JS, Go, or Java yet. PyO3 bindings crate exists but no Lens/TEP exposure.",
+          "lastUpdated": "2026-03-31"
+        },
+        "protocol": {
+          "name": "Protocol / API",
+          "score": 5.5,
+          "status": "adequate",
+          "summary": "TEP semantic foundation implemented: View<T> three-state returns, EBP state machine (Explore/Provisional/Commit), SyncEnvelope/SyncDelta universal exchange types, GovernanceArtifact compliance-by-construction. 51 tests passing. Lens API, wire protocol (gRPC/Arrow Flight), and external access not yet implemented.",
+          "lastUpdated": "2026-03-31"
+        },
+        "tooling": {
+          "name": "Tooling & Observability",
+          "score": 4.0,
+          "status": "needs-work",
+          "summary": "WAT telemetry counters built-in. DB-Gym harness (17 workloads). No Prometheus/Datadog integration yet. No GUI admin panel.",
+          "lastUpdated": "2026-03-31"
+        }
+      }
+    }
+  }
+}

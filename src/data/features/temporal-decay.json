@@ -1,0 +1,56 @@
+{
+  "slug": "temporal-decay",
+  "name": "Temporal Decay Query Primitive (TDQP)",
+  "category": "Epistemic Storage",
+  "status": "implemented",
+  "overview": "TDQP evaluates confidence decay at read time using configurable decay functions (exponential, linear, step). Every ConfidenceEnvelope carries decay parameters, and the primitive computes current confidence in 6.67ns per evaluation (150M evals/sec). This makes temporal awareness effectively free at query time.",
+  "howItWorks": [
+    { "step": "1", "title": "Decay Configuration", "description": "Each ConfidenceEnvelope includes a decay function type (exponential, linear, step), half-life duration, and floor value. These are set at write time and travel with the data through B-epsilon buffers." },
+    { "step": "2", "title": "Read-Time Evaluation", "description": "When a value is read, TDQP computes elapsed time since the envelope's creation timestamp and applies the configured decay function. The result is the current effective confidence." },
+    { "step": "3", "title": "Floor Enforcement", "description": "Confidence never drops below the configured floor value (typically 0.1). This prevents old-but-valid data from being treated as zero-confidence. The floor is part of the envelope, not a global setting." },
+    { "step": "4", "title": "Batch Optimization", "description": "During range scans, TDQP evaluates decay for all matching envelopes in a tight loop. The 6.67ns per-evaluation cost means scanning 1M entries adds only ~6.7ms of decay overhead." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Per-Evaluation Latency",
+      "value": "6.67ns",
+      "target": "<10ns",
+      "met": true,
+      "comparisons": [
+        { "system": "App-layer decay (Python)", "value": "1-5\u00b5s", "source": "Function call + datetime parsing per read" },
+        { "system": "App-layer decay (Rust)", "value": "50-200ns", "source": "Still requires per-read function dispatch" }
+      ]
+    },
+    {
+      "name": "Throughput",
+      "value": "150M evals/sec",
+      "target": ">100M/sec",
+      "met": true
+    },
+    {
+      "name": "Batch Scan Overhead (1M entries)",
+      "value": "~6.7ms",
+      "target": "<50ms",
+      "met": true,
+      "comparisons": [
+        { "system": "PostgreSQL trigger-based", "value": "500ms-2s", "source": "Per-row function execution" }
+      ]
+    }
+  ],
+  "comparisons": {
+    "narrative": "No production database implements temporal confidence decay as a storage primitive. Systems that need time-aware confidence must implement it in application code, paying function-call overhead per read and risking inconsistency between decay logic versions across services.",
+    "competitors": [
+      { "system": "PostgreSQL", "approach": "Application-layer functions or materialized views with scheduled refresh", "limitation": "Stale between refreshes; per-row function cost on live queries; no configurable decay curves" },
+      { "system": "Redis", "approach": "TTL-based key expiry", "limitation": "Binary alive/dead \u2014 no gradual confidence reduction; data is deleted, not decayed" },
+      { "system": "InfluxDB", "approach": "Retention policies and continuous queries", "limitation": "Coarse time-based deletion, not per-value confidence decay" },
+      { "system": "Neo4j", "approach": "No native temporal decay", "limitation": "Must compute decay in Cypher or application code per traversal" }
+    ]
+  },
+  "evidence": [
+    { "label": "TDQP implementation", "path": "trustdb/src/query/temporal_decay.rs" },
+    { "label": "Decay function types", "path": "trustdb/src/primitives/decay.rs" },
+    { "label": "Benchmark report", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["confidence-envelopes", "cabm", "rrms"],
+  "pillarsAffected": ["performance", "reliability", "efficiency"]
+}

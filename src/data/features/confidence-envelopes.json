@@ -1,0 +1,59 @@
+{
+  "slug": "confidence-envelopes",
+  "name": "Confidence Envelopes",
+  "category": "Epistemic Storage",
+  "status": "implemented",
+  "overview": "Every value stored in TrustDB carries a ConfidenceEnvelope \u2014 a metadata structure containing confidence score, source provenance, temporal parameters, and decay configuration. Unlike traditional databases where confidence is computed at application read time (requiring extra queries and logic), TrustDB maintains confidence as a first-class storage primitive that propagates through internal node buffers during B-epsilon flush operations.",
+  "howItWorks": [
+    { "step": "1", "title": "Write Path", "description": "When an entity or section is written, the caller provides a confidence score (0.0\u20131.0), confidence type (sourced, inferred, computed, default), and optional temporal decay parameters. These are wrapped into a ConfidenceEnvelope and stored alongside the value in the MessageEnvelope." },
+    { "step": "2", "title": "Buffer Storage", "description": "The ConfidenceEnvelope travels WITH the MessageEnvelope through B-epsilon internal node buffers. It is never stripped or separated from the data it describes." },
+    { "step": "3", "title": "Flush Path (CABM)", "description": "During B-epsilon flush, the Confidence-Aware Buffer Merge (CABM) applies temporal decay to the envelope based on elapsed time since creation. Multi-Parent Confidence Inheritance (MPCI) merges envelopes when multiple writes affect the same key." },
+    { "step": "4", "title": "Read Path (TDQP)", "description": "At read time, the Temporal Decay Query Primitive (TDQP) evaluates the envelope's current confidence by applying the decay function. This runs at 6.67ns per evaluation (150M evals/sec) \u2014 effectively free." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Confidence Write Overhead",
+      "value": "+28%",
+      "target": "<50%",
+      "met": true,
+      "comparisons": [
+        { "system": "App-layer confidence", "value": "+200\u2013500%", "source": "Extra DB queries + computation per write" }
+      ]
+    },
+    {
+      "name": "TDQP Decay Evaluation",
+      "value": "6.67ns (150M evals/sec)",
+      "target": "<10ns",
+      "met": true,
+      "comparisons": [
+        { "system": "App-layer decay computation", "value": "1\u201310\u00b5s", "source": "Per-read function call + DB round-trip" }
+      ]
+    },
+    {
+      "name": "Governance Codec Overhead",
+      "value": "3.3% (Bincode)",
+      "target": "<10%",
+      "met": true,
+      "comparisons": [
+        { "system": "App-layer governance (SQLite)", "value": "163%", "source": "Extra tables, joins, validation triggers" }
+      ]
+    }
+  ],
+  "comparisons": {
+    "narrative": "No production database treats confidence as a storage primitive. Every competitor requires application-layer confidence management, which means extra database queries, application code, and the constant risk of confidence metadata falling out of sync with the data it describes.",
+    "competitors": [
+      { "system": "PostgreSQL", "approach": "Application computes confidence via extra columns + triggers", "limitation": "163% overhead; confidence can desync from data during concurrent writes" },
+      { "system": "Neo4j", "approach": "Confidence as node/relationship properties", "limitation": "No temporal decay, no propagation through graph traversal, manual management" },
+      { "system": "MongoDB", "approach": "Nested confidence fields in documents", "limitation": "No engine-level enforcement, application must manage consistency" },
+      { "system": "Elasticsearch", "approach": "Relevance scoring at query time", "limitation": "Score is query-specific, not data-intrinsic; no temporal decay" }
+    ]
+  },
+  "evidence": [
+    { "label": "ConfidenceEnvelope primitive", "path": "trustdb/src/primitives/" },
+    { "label": "CABM merge logic", "path": "trustdb/src/merge/" },
+    { "label": "TDQP read path", "path": "trustdb/src/query/temporal_decay.rs" },
+    { "label": "Benchmark report", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["temporal-decay", "cabm", "provenance-chains", "snbr"],
+  "pillarsAffected": ["reliability", "performance", "efficiency"]
+}

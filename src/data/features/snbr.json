@@ -1,0 +1,52 @@
+{
+  "slug": "snbr",
+  "name": "Storage-Native Belief Revision (SNBR)",
+  "category": "Epistemic Storage",
+  "status": "implemented",
+  "overview": "SNBR implements Bayesian belief updates directly in the storage layer. When new evidence arrives for an existing entity, SNBR computes a posterior confidence using the prior confidence envelope and the incoming evidence strength, applying Bayes' rule without requiring application-level computation. This makes the database itself an epistemic reasoner.",
+  "howItWorks": [
+    { "step": "1", "title": "Prior Retrieval", "description": "When an update arrives for an existing key, SNBR retrieves the current ConfidenceEnvelope (the prior). This happens during the B-epsilon merge path, so no additional I/O is needed beyond what the tree already performs." },
+    { "step": "2", "title": "Evidence Evaluation", "description": "The incoming write carries its own confidence score and evidence type. SNBR evaluates the evidence strength based on source type, confidence level, and whether it corroborates or contradicts the prior." },
+    { "step": "3", "title": "Bayesian Update", "description": "A simplified Bayes' rule computes the posterior: combining prior confidence with evidence strength, weighted by source reliability. The result replaces the prior envelope while preserving the full provenance chain." },
+    { "step": "4", "title": "Threshold Actions", "description": "If the posterior crosses configured thresholds (e.g., drops below 0.3 or rises above 0.9), SNBR can trigger callbacks for downstream notification. This enables reactive confidence monitoring without polling." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Belief Update Latency",
+      "value": "~23ns per update",
+      "target": "<50ns",
+      "met": true,
+      "comparisons": [
+        { "system": "App-layer Bayesian update", "value": "5-50\u00b5s", "source": "Read-compute-write cycle with application logic" }
+      ]
+    },
+    {
+      "name": "Update Throughput",
+      "value": "~43M updates/sec",
+      "target": ">10M/sec",
+      "met": true
+    },
+    {
+      "name": "Correctness (vs reference Bayesian)",
+      "value": "< 1e-10 error",
+      "target": "IEEE 754 compliant",
+      "met": true
+    }
+  ],
+  "comparisons": {
+    "narrative": "Belief revision in traditional systems requires read-modify-write cycles at the application layer, with all the concurrency hazards that implies. SNBR moves this into the storage engine's write path, making belief updates atomic and consistent by default. No other production database implements Bayesian reasoning at the storage layer.",
+    "competitors": [
+      { "system": "PostgreSQL", "approach": "Application code reads prior, computes posterior, writes back in transaction", "limitation": "Race conditions under concurrent updates; non-trivial to make atomic" },
+      { "system": "Probabilistic DBs (MayBMS, Trio)", "approach": "Probabilistic query processing over uncertain data", "limitation": "Research systems, not production-ready; query-time only, no storage-level belief updates" },
+      { "system": "MongoDB", "approach": "Application-level update operators", "limitation": "No built-in probability math; $inc/$mul insufficient for Bayesian updates" }
+    ]
+  },
+  "evidence": [
+    { "label": "SNBR implementation", "path": "trustdb/src/belief/revision.rs" },
+    { "label": "Bayesian update kernel", "path": "trustdb/src/belief/bayes.rs" },
+    { "label": "Threshold callback system", "path": "trustdb/src/belief/thresholds.rs" },
+    { "label": "Benchmark report", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["confidence-envelopes", "rrms", "temporal-decay"],
+  "pillarsAffected": ["reliability", "performance"]
+}

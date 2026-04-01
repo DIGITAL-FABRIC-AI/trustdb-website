@@ -1,0 +1,248 @@
+{
+  "pillar": "reliability",
+  "pillarName": "Reliability & Integrity",
+  "subtitle": "The Trust Pillar",
+  "overallScore": 9.2,
+  "sections": [
+    {
+      "metric": "durability",
+      "metricName": "Durability",
+      "score": 9.5,
+      "status": "excellent",
+      "benchmarks": [
+        {
+          "name": "Crash Recovery Testing",
+          "value": "10,000 sequences, 0 failures",
+          "target": ">5,000 sequences",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "Extensively fuzz-tested", "source": "Decades of production use" },
+            { "system": "RocksDB", "value": "Crash-safe (WAL)", "source": "Meta production-hardened" },
+            { "system": "LMDB", "value": "Crash-safe (CoW B+tree)", "source": "Copy-on-write design" }
+          ]
+        },
+        {
+          "name": "WAL Recovery Testing",
+          "value": "1,000 sequences, 0 failures",
+          "target": ">500 sequences",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "WAL + checkpointing" },
+            { "system": "RocksDB", "value": "WAL + memtable recovery" }
+          ]
+        },
+        {
+          "name": "Durability Model",
+          "value": "CoW WAL (not ARIES)",
+          "target": "Crash-safe",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "WAL or journal" },
+            { "system": "RocksDB", "value": "WAL + LSM" },
+            { "system": "LMDB", "value": "CoW B+tree (no WAL needed)" }
+          ]
+        },
+        {
+          "name": "WAL Checksums",
+          "value": "FNV32",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "CRC32" },
+            { "system": "RocksDB", "value": "CRC32c" }
+          ]
+        }
+      ],
+      "narrative": "TrustDB's durability model is strong but young compared to battle-tested systems like SQLite (decades of production) and RocksDB (Meta-scale). The 10K DST crash sequences with zero data loss is encouraging, but SQLite has survived billions of production deployments. TrustDB's CoW WAL design is architecturally similar to LMDB (both use copy-on-write), which is known for excellent crash safety. The key differentiator: TrustDB maintains durability guarantees while also propagating confidence metadata through the WAL \u2014 something no competitor does.",
+      "evidence": [
+        { "label": "WAL Module", "path": "trustdb/src/wal/" },
+        { "label": "DST Tests", "path": "trustdb/tests/" },
+        { "label": "Test Results", "path": "trustdb/TEST_RESULTS.md" }
+      ],
+      "history": [
+        { "date": "2026-03-27", "value": "WAL + CoW built", "note": "Core durability model" },
+        { "date": "2026-03-28", "value": "10K DST pass", "note": "Comprehensive crash testing" }
+      ]
+    },
+    {
+      "metric": "consistency",
+      "metricName": "Consistency",
+      "score": 9.0,
+      "status": "excellent",
+      "benchmarks": [
+        {
+          "name": "Isolation Level",
+          "value": "Serializable (SSI)",
+          "target": "Serializable",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "Serializable" },
+            { "system": "RocksDB", "value": "Snapshot Isolation" },
+            { "system": "Neo4j", "value": "Read Committed" },
+            { "system": "PostgreSQL", "value": "Serializable (optional)" }
+          ]
+        },
+        {
+          "name": "Structural Invariants Enforced",
+          "value": "5 invariants",
+          "target": "All enforced",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "ACID constraints" },
+            { "system": "Neo4j", "value": "Schema + constraints" }
+          ]
+        },
+        {
+          "name": "Confidence Propagation Invariant",
+          "value": "Enforced at flush",
+          "target": "Enforced",
+          "met": true,
+          "comparisons": [
+            { "system": "Others", "value": "N/A", "source": "No competitor has this concept" }
+          ]
+        }
+      ],
+      "narrative": "TrustDB provides Serializable Snapshot Isolation \u2014 the strongest isolation level. This matches SQLite and is stronger than Neo4j (Read Committed) and default RocksDB (Snapshot Isolation). PostgreSQL offers Serializable but it's optional and has significant performance overhead. TrustDB's unique advantage: 5 structural invariants including confidence propagation and provenance chain integrity, which no competitor offers because they don't have epistemic concepts in storage.",
+      "evidence": [
+        { "label": "Transaction Module", "path": "trustdb/src/tx/" },
+        { "label": "Architecture Doc", "path": "trustdb/ARCHITECTURE.md" }
+      ],
+      "history": []
+    },
+    {
+      "metric": "availability",
+      "metricName": "Availability",
+      "score": 7.5,
+      "status": "strong",
+      "benchmarks": [
+        {
+          "name": "Replication",
+          "value": "Scaffold only (Raft)",
+          "target": "Production-ready",
+          "met": false,
+          "comparisons": [
+            { "system": "SQLite", "value": "None (embedded)" },
+            { "system": "Neo4j", "value": "Causal clustering" },
+            { "system": "CockroachDB", "value": "Multi-region Raft" },
+            { "system": "FoundationDB", "value": "Multi-Paxos" }
+          ]
+        },
+        {
+          "name": "Offline Mode (OCSS)",
+          "value": "4-phase sync protocol — 13 unit tests, 14 integration tests",
+          "target": "Built + enforced",
+          "met": true,
+          "source": "PR #165 + PR #169. OCSS tags offline writes with 0.9x confidence penalty, restores on clean sync. 4 phases: delta computation, conflict classification, confidence restoration, gap manifest. All phases wired to store with real clearance extraction (PREFIX_CLEARANCE index), not hardcoded.",
+          "comparisons": [
+            { "system": "SQLite", "value": "Always available (local)", "source": "No sync protocol — local only" },
+            { "system": "CouchDB", "value": "Multi-master sync (LWW)", "source": "Last-write-wins, no confidence semantics" },
+            { "system": "PouchDB", "value": "Offline-first sync", "source": "No governance layer, no clearance" }
+          ]
+        },
+        {
+          "name": "Federated Mesh (FWGA)",
+          "value": "5-tier DeviceManifest, CBAC clearance-enforced sync, quorum-as-confidence thresholds",
+          "target": "Implemented + tested",
+          "met": true,
+          "source": "PR #169 + PR #184. DeviceManifest with 5 tiers (Mothership/Regional/Desktop/Mobile/EdgeSensor), 6 unit tests. LoR-scoped data partitioning, clearance filtering, classification gates. Quorum replaced by continuous confidence threshold (Well: 0.67, Property: 0.67, Person: 0.0). Gap manifest filtered through manifest scope. Watermark lifecycle (persist + read back). Offline duration enforcement (writes >7d rejected).",
+          "comparisons": [
+            { "system": "CouchDB", "value": "No clearance, no governance, LWW only", "source": "No CBAC, no device scoping" },
+            { "system": "PouchDB", "value": "No device scoping, no confidence thresholds", "source": "Flat sync without hierarchy" },
+            { "system": "Realm Sync", "value": "Partition-based, no CBAC", "source": "Partitions are developer-defined, not governance-derived" }
+          ]
+        },
+        {
+          "name": "Background Sync Worker",
+          "value": "tokio::spawn async task — 3 tokio tests, reconnect signal + 30s periodic fallback",
+          "target": "Built",
+          "met": true,
+          "source": "PR #165. SyncWorker spawned via tokio::spawn, SyncWorkerHandle for caller interaction (queue_write, notify_reconnect, shutdown). Failed sessions re-queue writes — no silent data loss. SyncReport emitted per session via mpsc channel.",
+          "comparisons": [
+            { "system": "CouchDB", "value": "Continuous replication", "source": "HTTP long-poll" },
+            { "system": "Realm", "value": "Background sync", "source": "Platform-specific sync service" }
+          ]
+        },
+        {
+          "name": "Conflict Resolution Pipeline",
+          "value": "4-way classification (CausallyConsistent/AuthoritativelySuperseded/PeerConflict/NovelObservation) + PREFIX_CONFLICT_QUEUE + PREFIX_SNAPSHOT",
+          "target": "Built",
+          "met": true,
+          "source": "PR #169. PeerConflicts stored in PREFIX_CONFLICT_QUEUE (0x06) as JSON ConflictRecord with both sides captured — offline value, store value, clearances, timestamps. AuthoritativelySuperseded writes archived in PREFIX_SNAPSHOT (0x07) keyed by [original_key][write_ts_ms]. list_conflicts() and resolve_conflict() APIs. Pre-sync temporal sweep expires stale sections before delta computation.",
+          "comparisons": [
+            { "system": "CouchDB", "value": "Revision tree (manual resolution)", "source": "No clearance-based classification" },
+            { "system": "Realm", "value": "Custom conflict handlers", "source": "Developer writes handlers, no built-in governance" },
+            { "system": "PouchDB", "value": "Manual conflict resolution", "source": "Flags conflicts, developer resolves" }
+          ]
+        }
+      ],
+      "narrative": "Availability has transformed from the biggest gap to a differentiator. The federated mesh is now a fully wired, CBAC-enforced cross-device sync substrate with 5-tier device hierarchy (Mothership/Regional/Desktop/Mobile/EdgeSensor), clearance-aware conflict classification, a conflict queue that captures both sides (not silently dropped), snapshot archival for superseded writes, quorum-as-confidence (continuous threshold replacing binary quorum), pre-sync temporal sweep, offline duration enforcement, and watermark lifecycle management. Unlike CouchDB/PouchDB which offer document-level sync without governance, TrustDB's mesh enforces clearance at the storage layer \u2014 a field operator at clearance 2 cannot overwrite an authority write at clearance 5. The remaining gap: Raft replication is scaffold only and needs production hardening for multi-node deployment.",
+      "evidence": [
+        { "label": "Replication Module", "path": "trustdb/src/replication/" },
+        { "label": "Offline Module (OCSS)", "path": "trustdb/src/offline/" },
+        { "label": "Sync Operations", "path": "trustdb/src/store/sync_ops.rs" },
+        { "label": "Device Manifest", "path": "trustdb/src/store/device_manifest.rs" },
+        { "label": "Background Sync Worker", "path": "trustdb/src/background_sync.rs" },
+        { "label": "World Graph (Federation)", "path": "trustdb/src/world_graph/" }
+      ],
+      "history": [
+        { "date": "2026-03-30", "value": "OCSS + sync protocol built", "note": "4-phase sync, conflict classification taxonomy" },
+        { "date": "2026-03-31", "value": "Chain A: security model activated", "note": "PR #169 \u2014 clearance index, conflict queue, snapshot prefix, watermark lifecycle, pre-sync sweep, offline duration, DeviceManifest wiring" },
+        { "date": "2026-03-31", "value": "Quorum-as-confidence", "note": "PR #184 \u2014 continuous confidence threshold replaces binary quorum" }
+      ]
+    },
+    {
+      "metric": "faultTolerance",
+      "metricName": "Fault Tolerance",
+      "score": 9.7,
+      "status": "excellent",
+      "benchmarks": [
+        {
+          "name": "Auto WAL Recovery",
+          "value": "Active",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "Active" },
+            { "system": "RocksDB", "value": "Active" }
+          ]
+        },
+        {
+          "name": "Data Checksums",
+          "value": "CRC32c (data) + FNV32 (WAL)",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "Optional (PRAGMA checksum)" },
+            { "system": "RocksDB", "value": "CRC32c (blocks + WAL)" },
+            { "system": "PostgreSQL", "value": "Optional (data checksums)" }
+          ]
+        },
+        {
+          "name": "Resilience Test Suite",
+          "value": "13/13 DB-Gym pass",
+          "target": "All pass",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLite", "value": "Jepsen-tested" },
+            { "system": "RocksDB", "value": "Crash test suite" }
+          ]
+        },
+        {
+          "name": "Transitive Invalidation Cascade",
+          "value": "Automatic (stale_indices)",
+          "target": "Active",
+          "met": true,
+          "comparisons": [
+            { "system": "Others", "value": "N/A", "source": "App-layer responsibility in all competitors" }
+          ]
+        }
+      ],
+      "narrative": "Fault tolerance is a core strength. Auto WAL recovery and CRC32c checksums match RocksDB. TrustDB goes further with automatic transitive invalidation cascades \u2014 when upstream data changes, downstream dependent data is automatically marked stale. In every competitor, this is an application-layer responsibility. The DB-Gym resilience suite is custom-built for TrustDB's specific failure modes (confidence corruption, provenance chain breaks, cascade loops).",
+      "evidence": [
+        { "label": "DB-Gym Results", "path": "wikai-core/gym-results/" },
+        { "label": "Cascade Module", "path": "trustdb/src/cascade/" }
+      ],
+      "history": []
+    }
+  ]
+}

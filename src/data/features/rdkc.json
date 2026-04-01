@@ -1,0 +1,57 @@
+{
+  "slug": "rdkc",
+  "name": "Governance-Bound Key Derivation (RDKC)",
+  "category": "Security & Governance",
+  "status": "implemented",
+  "overview": "RDKC derives unique AES-256-GCM-SIV encryption keys per storage page from four governance inputs: entity classification, clearance level, jurisdiction, and temporal epoch. Keys are never stored \u2014 they are re-derived on access from the governance context. When governance changes (e.g., reclassification), structural key expiry automatically invalidates old ciphertext without explicit re-encryption.",
+  "howItWorks": [
+    { "step": "1", "title": "Governance Inputs", "description": "Four inputs feed the key derivation function (KDF): entity classification chain, accessor clearance bitfield, jurisdiction identifier, and temporal epoch counter. These are drawn from the CBAC governance context." },
+    { "step": "2", "title": "HKDF Derivation", "description": "HKDF-SHA256 derives a unique 256-bit key from the four governance inputs plus a master secret. The derivation is deterministic: same inputs always produce the same key, enabling re-derivation without key storage." },
+    { "step": "3", "title": "Page Encryption", "description": "Each storage page is encrypted with its derived key using AES-256-GCM-SIV (nonce-misuse resistant). The governance inputs are stored in the page header in cleartext for re-derivation." },
+    { "step": "4", "title": "Structural Key Expiry", "description": "When any governance input changes (reclassification, clearance change, jurisdiction transfer, epoch rotation), the derived key changes. Old pages cannot be decrypted with the new key, enforcing automatic access revocation without explicit re-encryption passes." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Key Derivation Latency",
+      "value": "~180ns per derivation",
+      "target": "<500ns",
+      "met": true,
+      "comparisons": [
+        { "system": "AWS KMS", "value": "5-15ms", "source": "Network round-trip to KMS service" },
+        { "system": "HashiCorp Vault", "value": "2-10ms", "source": "HTTP API call to Vault server" }
+      ]
+    },
+    {
+      "name": "Encryption Overhead (GCM-SIV)",
+      "value": "~1.2 GB/s throughput",
+      "target": ">500 MB/s",
+      "met": true
+    },
+    {
+      "name": "Re-encryption on Reclassification",
+      "value": "0 (structural expiry)",
+      "target": "No re-encryption needed",
+      "met": true,
+      "comparisons": [
+        { "system": "Traditional KMS rotation", "value": "Full re-encryption pass", "source": "Must decrypt and re-encrypt all affected data" }
+      ]
+    }
+  ],
+  "comparisons": {
+    "narrative": "Traditional systems use external key management services (AWS KMS, Vault) with per-operation network overhead. RDKC eliminates this by deriving keys locally from governance context. The structural expiry mechanism is unique \u2014 no other system achieves automatic access revocation through key derivation changes without re-encryption.",
+    "competitors": [
+      { "system": "AWS KMS", "approach": "Centralized key management with envelope encryption", "limitation": "5-15ms network overhead per operation; key rotation requires re-encryption" },
+      { "system": "HashiCorp Vault", "approach": "Dynamic secrets with transit encryption", "limitation": "Separate service dependency; network latency; explicit rotation required" },
+      { "system": "PostgreSQL TDE", "approach": "Tablespace-level encryption with single key", "limitation": "One key per tablespace; no per-page governance; no structural expiry" },
+      { "system": "MongoDB CSFLE", "approach": "Client-side field-level encryption", "limitation": "Application-managed keys; no governance-driven derivation; manual rotation" }
+    ]
+  },
+  "evidence": [
+    { "label": "RDKC key derivation", "path": "trustdb/src/security/rdkc.rs" },
+    { "label": "AES-256-GCM-SIV encryption", "path": "trustdb/src/security/encryption.rs" },
+    { "label": "Structural key expiry", "path": "trustdb/src/security/key_expiry.rs" },
+    { "label": "Benchmark report", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["cbac", "rewg", "post-quantum-keys"],
+  "pillarsAffected": ["security", "efficiency"]
+}

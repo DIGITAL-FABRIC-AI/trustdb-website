@@ -1,0 +1,57 @@
+{
+  "slug": "rewg",
+  "name": "Graph-Derived Entitlements (REWG)",
+  "category": "Security & Governance",
+  "status": "implemented",
+  "overview": "REWG computes access entitlements from an entity's position in the governance graph using bitwise AND inheritance. Instead of maintaining separate access control lists, permissions are derived by traversing the classification graph and intersecting clearance bitfields. The TRAVERSE primitive evaluates entitlements during graph edge traversal, making access control a zero-cost byproduct of navigation.",
+  "howItWorks": [
+    { "step": "1", "title": "Clearance Bitfield", "description": "Each actor (user, agent, service) carries a clearance bitfield encoding their governance permissions. Each bit represents a classification dimension (e.g., confidentiality level, jurisdiction, compartment)." },
+    { "step": "2", "title": "Entity Classification", "description": "Each entity in the graph carries its own classification bitfield, derived from its position in the classification chain. Child entities inherit parent classifications via bitwise OR." },
+    { "step": "3", "title": "TRAVERSE Primitive", "description": "During graph traversal, the TRAVERSE primitive performs bitwise AND between the actor's clearance and each entity's classification. If the result equals the entity's classification, access is granted. This is a single CPU instruction per check." },
+    { "step": "4", "title": "Inheritance Propagation", "description": "When entities are linked via governance edges, classifications propagate downward. Reclassifying a parent automatically affects all descendants without updating individual records." }
+  ],
+  "benchmarks": [
+    {
+      "name": "Entitlement Check Latency",
+      "value": "~2ns (single AND instruction)",
+      "target": "<10ns",
+      "met": true,
+      "comparisons": [
+        { "system": "Google Zanzibar", "value": "1-5ms", "source": "Network call to centralized authorization service" },
+        { "system": "Neo4j RBAC", "value": "50-200\u00b5s", "source": "Policy evaluation per query" }
+      ]
+    },
+    {
+      "name": "Traversal with Entitlement Filtering",
+      "value": "<1% overhead vs unfiltered traversal",
+      "target": "<5% overhead",
+      "met": true
+    },
+    {
+      "name": "Reclassification Propagation",
+      "value": "Instant (inherited, not copied)",
+      "target": "No propagation delay",
+      "met": true,
+      "comparisons": [
+        { "system": "Google Zanzibar", "value": "Seconds (zookie propagation)", "source": "Eventual consistency across regions" }
+      ]
+    }
+  ],
+  "comparisons": {
+    "narrative": "Authorization in distributed systems typically requires a separate service (Zanzibar, OPA, Casbin) that adds network latency to every access check. REWG eliminates this by embedding entitlements directly in the data graph. The tradeoff is less policy flexibility than Zanzibar's tuple-based model, but the performance advantage is 5-6 orders of magnitude.",
+    "competitors": [
+      { "system": "Google Zanzibar", "approach": "Centralized tuple store with relationship-based access control", "limitation": "Separate service with 1-5ms network overhead; eventually consistent" },
+      { "system": "Neo4j RBAC", "approach": "Role-based access control with policy evaluation", "limitation": "Policy-based, not structural; evaluated per-query, not per-traversal-step" },
+      { "system": "Open Policy Agent", "approach": "Policy-as-code with Rego language", "limitation": "Separate sidecar process; millisecond-scale evaluation; no graph awareness" },
+      { "system": "Apache Ranger", "approach": "Centralized policy administration for Hadoop ecosystem", "limitation": "Designed for batch systems; not suitable for real-time graph traversal" }
+    ]
+  },
+  "evidence": [
+    { "label": "REWG entitlement logic", "path": "trustdb/src/security/rewg.rs" },
+    { "label": "TRAVERSE primitive", "path": "trustdb/src/query/traverse.rs" },
+    { "label": "Clearance bitfield type", "path": "trustdb/src/primitives/clearance.rs" },
+    { "label": "Benchmark report", "path": "Research/TrustDB/trustdb_final_benchmark_report.md" }
+  ],
+  "relatedFeatures": ["cbac", "rdkc", "graph-edges"],
+  "pillarsAffected": ["security", "performance", "scalability"]
+}
