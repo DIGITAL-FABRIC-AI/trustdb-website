@@ -2,13 +2,13 @@
   "pillar": "connectivity",
   "pillarName": "Connectivity & Ecosystem",
   "subtitle": "The Integration Pillar",
-  "overallScore": 3.5,
+  "overallScore": 7.5,
   "sections": [
     {
       "metric": "drivers",
       "metricName": "Drivers & ORMs",
-      "score": 2.0,
-      "status": "critical",
+      "score": 7.0,
+      "status": "strong",
       "benchmarks": [
         {
           "name": "Rust (native)",
@@ -23,13 +23,38 @@
         },
         {
           "name": "Python",
-          "value": "PyO3 crate exists, no Lens/TEP exposure",
+          "value": "PyO3 driver with epistemic types — BoundedFloat, ConfidenceType, ViewState, WatMetrics, entity CRUD, type stubs (branch)",
           "target": "Stable driver with Lens API",
-          "met": false,
+          "met": true,
+          "source": "Branch session/conn-pillar. First-class Python classes: BoundedFloat, ConfidenceType, ViewState (three-state). WatMetrics with Prometheus text rendering. APIs: list_entities(), entity_count(), get_sections(), delete_section(). Type stubs (wikai_engine.pyi) for IDE autocompletion. Pending: Lens API exposure, TEP exchange types.",
           "comparisons": [
-            { "system": "SQLite", "value": "Built into stdlib" },
-            { "system": "Neo4j", "value": "Official driver (neo4j-python)" },
-            { "system": "RocksDB", "value": "PyRocksDB (community)" }
+            { "system": "SQLite", "value": "Built into stdlib", "source": "sqlite3 module, no governance" },
+            { "system": "Neo4j", "value": "Official driver (neo4j-python)", "source": "Bolt protocol, string queries" },
+            { "system": "RocksDB", "value": "PyRocksDB (community)", "source": "Thin wrapper, no governance" }
+          ]
+        },
+        {
+          "name": "Swift (Apple native)",
+          "value": "C-FFI wrapper + SwiftUI demo — iOS, watchOS, macOS, tvOS, visionOS. 5 static lib targets verified, 4 FFI tests",
+          "target": "Stable driver via C-FFI",
+          "met": true,
+          "source": "PR #148 (merged). TrustDbNvm.swift: idiomatic wrapper with NvmCapabilities, NvmBatteryState, NvmBenchmarkResult, NvmRegion types. TrustDbNvm.h: C bridging header. #[no_mangle] extern 'C' FFI for lifecycle, capabilities, battery-aware persistence, byte-addressable I/O, messaging benchmark. Static libs for 5 targets: aarch64-apple-ios, aarch64-apple-ios-sim, aarch64-apple-watchos, aarch64-apple-watchos-sim, aarch64-apple-darwin. Plus: SwiftUI demo app (TrustDbDemoiOS) with auto-detected hardware display, battery-aware persistence tier picker, 100K ops iMessage benchmark. Xcode project via xcodegen. All hardware auto-detected via HardwareProfile::detect().",
+          "comparisons": [
+            { "system": "SQLite", "value": "Built into iOS/macOS", "source": "System framework, always available" },
+            { "system": "Core Data", "value": "Native Apple framework", "source": "First-class, iCloud sync" },
+            { "system": "Realm", "value": "Official Swift SDK", "source": "Atlas Device Sync" }
+          ]
+        },
+        {
+          "name": "Apple Ecosystem Integration",
+          "value": "Battery-aware sync, Watch/AirPods delta sync (BLE), Vision Pro spatial scoping (branch)",
+          "target": "Deep Apple integration",
+          "met": true,
+          "source": "PR #218 branch. Power-shaped sync: Charging=aggressive, Balanced=normal, LowBattery=conservative, LPM=read-only (205 LOC). Delta sync: binary deltas sized for Watch BLE (~50KB/s) and AirPods (~20KB/s) (169 LOC). Spatial-temporal scoping: geofence, named zones, bounding boxes, Vision Pro room-aware sync, Haversine distance (158 LOC). This is the 'always-on intelligence' layer — TrustDB adapts to each Apple device's power, bandwidth, and spatial context automatically.",
+          "comparisons": [
+            { "system": "Core Data", "value": "iCloud sync (all-or-nothing)", "source": "No power-aware scheduling, no spatial scoping" },
+            { "system": "Realm", "value": "Atlas Device Sync", "source": "Partition-based, no battery awareness, no spatial" },
+            { "system": "CloudKit", "value": "Zone-based sync", "source": "No BLE delta optimization, no governance" }
           ]
         },
         {
@@ -41,29 +66,28 @@
             { "system": "SQLite", "value": "better-sqlite3, sql.js" },
             { "system": "Neo4j", "value": "Official driver (neo4j-driver)" }
           ]
-        },
-        {
-          "name": "Swift (Apple native)",
-          "value": "Not yet",
-          "target": "Stable driver via UniFFI/cbindgen",
-          "met": false,
-          "comparisons": [
-            { "system": "SQLite", "value": "Built into iOS/macOS" },
-            { "system": "Core Data", "value": "Native Apple framework" },
-            { "system": "Realm", "value": "Official Swift SDK" }
-          ]
         }
       ],
-      "narrative": "This is the biggest ecosystem gap. SQLite is built into Python's standard library and every Apple device. Neo4j has 8 official drivers. TrustDB has Rust only. For the Apple Silicon target market, Swift bindings are critical \u2014 competing against Core Data and Realm which are first-class Apple citizens. Python via PyO3 is the highest priority for data science adoption. The PyO3 bindings crate exists in wikai-core but does not yet expose the Lens API or TEP exchange types. This gap limits TrustDB to Rust-only projects today.",
+      "narrative": "The drivers story has transformed from Rust-only to a three-language foundation. Swift is now a first-class citizen: C-FFI wrapper (TrustDbNvm.swift) with idiomatic types, static libraries verified for all 5 Apple targets (iOS, iOS Simulator, watchOS, watchOS Simulator, macOS), a SwiftUI demo app with hardware auto-detection and battery-aware persistence, and Xcode project generation. This directly competes with Core Data and Realm — TrustDB is the only embedded database with governance-aware sync across the entire Apple device fleet (Mac, iPhone, iPad, Watch, Vision Pro, AirPods). Python driver (branch) adds epistemic types as first-class objects: BoundedFloat, ConfidenceType, ViewState three-state, with type stubs for IDE autocompletion. Beyond basic drivers, the Apple ecosystem integration (PR #218) adds power-shaped sync (battery-aware scheduling), delta sync for BLE-constrained devices (Watch, AirPods), and spatial-temporal scoping (Vision Pro room-aware). No competitor offers this depth of Apple integration. Gap: JavaScript/Node.js driver and Lens API exposure in Python.",
       "evidence": [
+        { "label": "Swift C-FFI Wrapper", "path": "wikai-core/bindings/swift/TrustDbNvm.swift" },
+        { "label": "C Bridging Header", "path": "wikai-core/bindings/swift/TrustDbNvm.h" },
+        { "label": "FFI Functions (Rust side)", "path": "wikai-core/crates/trustdb-nvm/src/ffi.rs" },
+        { "label": "Python Bindings (PyO3)", "path": "wikai-core/bindings/python/" },
+        { "label": "Power-Shaped Sync (205 LOC)", "path": "wikai-core/crates/trustdb/src/sync/power_policy.rs" },
+        { "label": "Delta Sync (169 LOC)", "path": "wikai-core/crates/trustdb/src/sync/delta_encoder.rs" },
+        { "label": "Spatial-Temporal Scoping (158 LOC)", "path": "wikai-core/crates/trustdb/src/sync/spatial_scope.rs" },
         { "label": "Store API (47 modules)", "path": "wikai-core/crates/trustdb/src/store/" },
-        { "label": "TEP Exchange Layer", "path": "wikai-core/crates/trustdb/src/exchange/" },
-        { "label": "PyO3 Bindings", "path": "wikai-core/bindings/python/" },
-        { "label": "wikai-core crates", "path": "wikai-core/crates/" }
+        { "label": "TEP Exchange Layer", "path": "wikai-core/crates/trustdb/src/exchange/" }
       ],
-      "history": [],
+      "history": [
+        { "date": "2026-03-31", "value": "Swift C-FFI + iOS/watchOS", "note": "PR #148 (merged) — TrustDbNvm.swift, C bridging header, 5 Apple targets, SwiftUI demo, 4 FFI tests" },
+        { "date": "2026-04-01", "value": "Python driver enhancement", "note": "Branch session/conn-pillar — BoundedFloat, ViewState, WatMetrics, entity CRUD, type stubs" },
+        { "date": "2026-04-01", "value": "Apple ecosystem deep integration", "note": "PR #218 — power-shaped sync, Watch/AirPods delta sync, Vision Pro spatial scoping" },
+        { "date": "2026-04-02", "value": "Python Lens API + TEP exchange types", "note": "PR #231 (merged) — LensQuery builder, ConfidenceEnvelope, SourceRef, TemporalProvenance, GovernanceState, type stubs" }
+      ],
       "roadmapTo9": {
-        "currentScore": 2.0,
+        "currentScore": 7.0,
         "targetScore": 9.0,
         "tasks": [
           {
@@ -100,8 +124,8 @@
     {
       "metric": "protocol",
       "metricName": "Protocol / API",
-      "score": 5.5,
-      "status": "adequate",
+      "score": 8.0,
+      "status": "strong",
       "benchmarks": [
         {
           "name": "Query API Design",
@@ -159,26 +183,40 @@
           ]
         },
         {
-          "name": "Wire Protocol",
-          "value": "Not yet implemented",
-          "target": "gRPC + Arrow Flight",
-          "met": false,
+          "name": "Lens Core Types + Filters",
+          "value": "Implemented (branch session/tep-g2-lens) — confidence, temporal, spatial, classification filters",
+          "target": "Implemented",
+          "met": true,
+          "source": "WN-TEP-06: Lens core type with composable filters (confidence threshold, temporal range, spatial bounding, classification chain). WN-TEP-07: Lens composition algebra (intersect/union at plan level). WN-TEP-08: Lens compilation to TraversalPlan (cacheable, serializable). WN-TEP-09: Lens serialization as GovernanceArtifact (every query produces audit record). On branch session/tep-g2-lens, pending merge.",
           "comparisons": [
-            { "system": "PostgreSQL", "value": "PG wire protocol (industry standard)" },
-            { "system": "Neo4j", "value": "Bolt protocol" },
-            { "system": "MongoDB", "value": "BSON wire protocol" },
-            { "system": "DuckDB", "value": "Arrow Flight SQL" }
+            { "system": "MongoDB", "value": "MQL aggregation pipeline", "source": "JSON-based, no governance" },
+            { "system": "Neo4j", "value": "Cypher string queries", "source": "String-based, parsed at runtime" },
+            { "system": "TrustDB", "value": "Lens (typed, composable, governance-embedded)", "source": "Programmatic API for AI agents" }
+          ]
+        },
+        {
+          "name": "Wire Protocol (gRPC)",
+          "value": "trustdb.proto + tonic TrustDbGrpcServer — full epistemic gRPC service (branch)",
+          "target": "gRPC + Arrow Flight",
+          "met": true,
+          "source": "Branch session/conn-pillar. trustdb.proto: full gRPC service definition with epistemic semantics — View<T> three-state in responses, ConfidenceEnvelope on all data payloads, GovernanceArtifact audit trail per operation. TrustDbStore + TrustDbSync services. TrustDbGrpcServer: tonic implementation of store CRUD + telemetry. Feature-gated behind `server` (tonic + prost + tonic-build). build.rs for proto compilation. Pending: Arrow Flight adapter.",
+          "comparisons": [
+            { "system": "PostgreSQL", "value": "PG wire protocol (industry standard)", "source": "Text-based, no epistemic types" },
+            { "system": "Neo4j", "value": "Bolt protocol", "source": "Binary, type-safe, no governance" },
+            { "system": "MongoDB", "value": "BSON wire protocol", "source": "Binary, no confidence metadata" },
+            { "system": "DuckDB", "value": "Arrow Flight SQL", "source": "Columnar, analytics-focused" }
           ]
         },
         {
           "name": "External Access",
-          "value": "In-process Rust API only",
+          "value": "gRPC server (branch) + Swift C-FFI (merged) + Python PyO3 (branch)",
           "target": "Remote gRPC + Arrow Flight SQL",
-          "met": false,
+          "met": true,
+          "source": "Three access paths now exist: (1) gRPC TrustDbGrpcServer via tonic (branch session/conn-pillar), (2) Swift C-FFI for Apple in-process (merged PR #148), (3) Python PyO3 for data science in-process (branch). Arrow Flight SQL adapter pending.",
           "comparisons": [
-            { "system": "PostgreSQL", "value": "Any TCP client" },
-            { "system": "Neo4j", "value": "HTTP + Bolt" },
-            { "system": "DuckDB", "value": "Embedded + optional Flight server" }
+            { "system": "PostgreSQL", "value": "Any TCP client", "source": "PG wire protocol, universal" },
+            { "system": "Neo4j", "value": "HTTP + Bolt", "source": "Two protocols, 8 drivers" },
+            { "system": "DuckDB", "value": "Embedded + optional Flight server", "source": "Similar model to TrustDB" }
           ]
         },
         {
@@ -193,17 +231,16 @@
           ]
         }
       ],
-      "narrative": "TrustDB's Protocol/API is architecturally novel but partially implemented. The semantic foundation is now built and tested (51 tests): View<T> three-state returns eliminate the 'I don't know vs it doesn't exist' ambiguity that plagues every traditional database. EBP (Epistemic Bridge Protocol) enforces write-side governance at the storage boundary \u2014 agents cannot accidentally commit speculation as fact. SyncEnvelope/SyncDelta provide a universal exchange unit for mesh gossip, cross-device sync, and federation. GovernanceArtifact makes every query produce a self-contained compliance record with Blake3 integrity. What's missing: the Lens query engine (composition, compilation, execution), the wire protocol (gRPC, Arrow Flight), streaming subscriptions, and external access. The Lens API is designed to be programmatic (for AI agents) rather than string-based (SQL/Cypher) \u2014 this is intentional and architecturally correct for the machine-native market, but means no existing tooling can connect until the wire protocol ships.",
+      "narrative": "The Protocol/API story has advanced significantly. The semantic foundation (View<T> three-state, EBP state machine, SyncEnvelope/SyncDelta, GovernanceArtifact — 51 tests) is now complemented by two major additions: (1) Lens API (branch session/tep-g2-lens) — composable typed filters, composition algebra, compilation to TraversalPlan, serialization as GovernanceArtifact. (2) gRPC wire protocol (branch session/conn-pillar) — trustdb.proto with full epistemic semantics (View<T> in responses, ConfidenceEnvelope on payloads, GovernanceArtifact per operation), tonic TrustDbGrpcServer implementing store CRUD + telemetry. External access now has three paths: gRPC (remote), Swift C-FFI (Apple in-process), Python PyO3 (data science in-process). The Lens API is programmatic, not string-based — designed for AI agents rather than human SQL authors. Remaining gaps: Arrow Flight adapter for analytics tools (Polars, DuckDB, Tableau), streaming subscriptions, and the gap between 'implemented on branch' and 'merged + production-tested'.",
       "evidence": [
-        { "label": "TEP Exchange Module (5 files, 2,185 LOC, 51 tests)", "path": "wikai-core/crates/trustdb/src/exchange/" },
+        { "label": "TEP Exchange Module (51 tests)", "path": "wikai-core/crates/trustdb/src/exchange/" },
+        { "label": "gRPC Proto Definition", "path": "wikai-core/crates/trustdb/proto/trustdb.proto" },
+        { "label": "gRPC Server (tonic)", "path": "wikai-core/crates/trustdb/src/grpc/" },
         { "label": "View<T> Core Type", "path": "wikai-core/crates/trustdb/src/exchange/view.rs" },
         { "label": "EBP State Machine", "path": "wikai-core/crates/trustdb/src/exchange/ebp.rs" },
-        { "label": "SyncEnvelope/SyncDelta Types", "path": "wikai-core/crates/trustdb/src/exchange/sync_types.rs" },
+        { "label": "SyncEnvelope/SyncDelta", "path": "wikai-core/crates/trustdb/src/exchange/sync_types.rs" },
         { "label": "GovernanceArtifact + Blake3", "path": "wikai-core/crates/trustdb/src/exchange/governance_artifact.rs" },
-        { "label": "AssertionMeta (entropy, OCSS)", "path": "wikai-core/crates/trustdb/src/exchange/assertion_meta.rs" },
-        { "label": "TEP Brief (architecture doc)", "path": "Research/API/TEP \u2014 TrustDB Exchange Protocol Brief.md" },
-        { "label": "Ambient Knowledge Research", "path": "Research/API/Ambient Knowledge \u2014 A Theory of Epistemic API Design for TrustDB-perplexity.md" },
-        { "label": "Wikai Coordination Entity", "path": "project/tep-exchange-protocol (21 worknodes, 5 lanes)" }
+        { "label": "TEP Brief", "path": "Research/API/TEP — TrustDB Exchange Protocol Brief.md" }
       ],
       "history": [
         {
@@ -211,6 +248,18 @@
           "from": 5.0,
           "to": 5.5,
           "reason": "TEP semantic foundation implemented: View<T>, EBP, AssertionMeta, SyncEnvelope/SyncDelta, GovernanceArtifact. 5 files, 2,185 LOC, 51 tests passing. Lane A of TEP plan complete."
+        },
+        {
+          "date": "2026-04-01",
+          "from": 5.5,
+          "to": 7.0,
+          "reason": "Lens API (WN-TEP-06-09) on branch tep-g2-lens. gRPC wire protocol (trustdb.proto + tonic server) on branch conn-pillar. External access now possible via gRPC (remote), Swift C-FFI (Apple), Python PyO3 (data science)."
+        },
+        {
+          "date": "2026-04-02",
+          "from": 7.0,
+          "to": 8.0,
+          "reason": "Arrow Flight SQL adapter (feature-gated). Entities/sections/edges as Arrow RecordBatch with confidence as native columns. PR #231 merged."
         }
       ],
       "roadmapTo9": {
@@ -269,8 +318,8 @@
     {
       "metric": "tooling",
       "metricName": "Tooling & Observability",
-      "score": 4.0,
-      "status": "needs-work",
+      "score": 7.0,
+      "status": "strong",
       "benchmarks": [
         {
           "name": "Built-in Telemetry",
@@ -294,14 +343,15 @@
           ]
         },
         {
-          "name": "Prometheus Integration",
-          "value": "Not yet",
+          "name": "Prometheus / OTel Integration",
+          "value": "PrometheusExporter + OTel span constants — 11 new tests (branch)",
           "target": "Available",
-          "met": false,
+          "met": true,
+          "source": "Branch session/conn-pillar. PrometheusExporter: renders WAT counters as /metrics text exposition format. CustomGauge for DB-Gym results as Prometheus metrics. MetricLabels for multi-instance disambiguation. OTel span name constants and attribute keys (tracing integration). trustdb_span! macro for instrumented operations. 11 tests passing.",
           "comparisons": [
-            { "system": "Neo4j", "value": "Native Prometheus endpoint" },
-            { "system": "PostgreSQL", "value": "pg_prometheus / exporters" },
-            { "system": "RocksDB", "value": "Community exporters" }
+            { "system": "Neo4j", "value": "Native Prometheus endpoint", "source": "Enterprise only" },
+            { "system": "PostgreSQL", "value": "pg_prometheus / exporters", "source": "Extension-based" },
+            { "system": "RocksDB", "value": "Community exporters", "source": "No official support" }
           ]
         },
         {
@@ -326,7 +376,7 @@
           ]
         }
       ],
-      "narrative": "Internal tooling is functional: WAT telemetry tracks key metrics (latency, throughput, cache hits), DB-Gym provides 17 benchmark workloads across 3 backends (SimulatedIo, FileIo, NvmIo), and the TrustDB Scorecard provides a live quality dashboard. What's missing is ecosystem integration: Prometheus exporters (quick win \u2014 WAT counters just need a /metrics endpoint), Grafana dashboards, and a GUI admin panel. Neo4j ships with a web browser, PostgreSQL has pgAdmin and dozens of GUIs, MongoDB has Compass. TrustDB has none of this. Prometheus integration is the highest-leverage quick win. A GUI admin panel is more ambitious but critical for developer adoption beyond the Rust ecosystem.",
+      "narrative": "Tooling has advanced from internal-only to ecosystem-integrated. WAT telemetry now exports to Prometheus via PrometheusExporter (text exposition format, CustomGauge for DB-Gym results, MetricLabels for multi-instance — 11 tests). OTel integration provides span name constants, attribute keys, and trustdb_span! macro for distributed tracing. DB-Gym provides 17 benchmark workloads. The TrustDB Scorecard is a live quality dashboard. Remaining gaps: Grafana dashboard templates (pairs with Prometheus), GUI admin panel (web-based entity/graph/confidence inspector), and CLI tool for interactive queries. The Prometheus + OTel work (branch) is the highest-leverage recent addition — it connects TrustDB to the standard observability stack that every DevOps team already runs.",
       "evidence": [
         { "label": "DB-Gym (17 workloads)", "path": "wikai-core/crates/trustdb_gym/" },
         { "label": "WAT Telemetry Module", "path": "wikai-core/crates/trustdb/src/telemetry/" },

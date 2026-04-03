@@ -1,5 +1,29 @@
 [
   {
+    "date": "2026-04-01",
+    "version": "Phase 5",
+    "title": "Raft Consensus + Device Lifecycle + Rebalancing (PR #218)",
+    "description": "Complete Raft consensus implementation (5 worknodes: RPC layer, leader election, log replication, compaction, persistence — 18 tests). Device lifecycle (register/deregister/heartbeat — 10 tests). Automatic rebalancing (scope-change detection, auto-rebalance trigger, Raft membership changes). Progressive compaction. Classification-chain partitioning. Availability 7.5 → 9.0. Horizontal Scaling 5.5 → 8.5. Elasticity 4.5 → 9.0.",
+    "pillarsAffected": ["reliability", "scalability"],
+    "tags": ["milestone", "architecture", "consensus"]
+  },
+  {
+    "date": "2026-04-01",
+    "version": "Phase 4.5",
+    "title": "Self-Draining Conflicts + WAL HMAC + SSP (PRs #201, merged)",
+    "description": "Mesh conflict pipeline now self-draining: tolerance-band auto-merge (5% numeric conflicts), confidence-wins (delta > 0.2), quorum promotion (PREFIX_PROVISIONAL), stigmergic gap manifest (RRMS heat-sorted). WAL upgraded from FNV-1a to HMAC-SHA384 (7 tests, tamper-proof — PRE-05). SSP Evidence Appendix auto-maps gym tests to NIST SP 800-53 controls (GYM-R01). Auditing 7.0 → 8.0. Security overall 7.8 → 8.2.",
+    "pillarsAffected": ["reliability", "security"],
+    "tags": ["security", "mesh", "compliance"]
+  },
+  {
+    "date": "2026-04-01",
+    "version": "Phase 4.2",
+    "title": "Lens API (WN-TEP-06 to 09, branch pending merge)",
+    "description": "Lens core types + composable filters (confidence, temporal, spatial, classification). Composition algebra (intersect/union at plan level). Compilation to TraversalPlan (cacheable, serializable). Serialization as GovernanceArtifact (every query produces audit record). On branch session/tep-g2-lens. Protocol score 5.5 → 6.0.",
+    "pillarsAffected": ["connectivity"],
+    "tags": ["api", "architecture"]
+  },
+  {
     "date": "2026-03-31",
     "version": "0.1.0-nvm",
     "title": "NVM-Aware Persistence Engine (22 PRs)",
