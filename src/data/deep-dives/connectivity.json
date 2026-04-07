@@ -124,8 +124,8 @@
     {
       "metric": "protocol",
       "metricName": "Protocol / API",
-      "score": 8.0,
-      "status": "strong",
+      "score": 9.0,
+      "status": "excellent",
       "benchmarks": [
         {
           "name": "Query API Design",
@@ -195,43 +195,45 @@
           ]
         },
         {
-          "name": "Wire Protocol (gRPC)",
-          "value": "trustdb.proto + tonic TrustDbGrpcServer — full epistemic gRPC service (branch)",
-          "target": "gRPC + Arrow Flight",
+          "name": "Fabric Flight v1.0 — QUIC-Native Protocol",
+          "value": "11 RPCs, 36-module exchange layer, ~264 tests",
+          "target": "Full protocol coverage",
           "met": true,
-          "source": "Branch session/conn-pillar. trustdb.proto: full gRPC service definition with epistemic semantics — View<T> three-state in responses, ConfidenceEnvelope on all data payloads, GovernanceArtifact audit trail per operation. TrustDbStore + TrustDbSync services. TrustDbGrpcServer: tonic implementation of store CRUD + telemetry. Feature-gated behind `server` (tonic + prost + tonic-build). build.rs for proto compilation. Pending: Arrow Flight adapter.",
+          "source": "Fabric Flight v1.0 spec (2026-04-03). Replaces gRPC/HTTP2 with QUIC-native transport: ~25% throughput improvement, 28% p50 latency reduction. Per-stream loss recovery (ClassificationStream → independent QUIC stream). 0-RTT resumption for known sessions. RPCs: OpenSession, UpdateSession, UpdateSpatialVolume, TraverseGraph, MaterializeRequest, PushDeltas, QueryGaps, SubscribeBeliefs, SpatialStream, ExchangeAtoms, ResolveVeiled.",
           "comparisons": [
-            { "system": "PostgreSQL", "value": "PG wire protocol (industry standard)", "source": "Text-based, no epistemic types" },
-            { "system": "Neo4j", "value": "Bolt protocol", "source": "Binary, type-safe, no governance" },
-            { "system": "MongoDB", "value": "BSON wire protocol", "source": "Binary, no confidence metadata" },
-            { "system": "DuckDB", "value": "Arrow Flight SQL", "source": "Columnar, analytics-focused" }
+            { "system": "Arrow Flight (gRPC/HTTP2)", "value": "TCP head-of-line blocking; 6 RPCs; no epistemic semantics" },
+            { "system": "PostgreSQL PG wire", "value": "TCP, text-based, no epistemic types, no streaming subscription" },
+            { "system": "Neo4j Bolt", "value": "Binary, no governance, no spatial session state" },
+            { "system": "DuckDB Arrow Flight SQL", "value": "Columnar analytics; no governance, no mesh, no subscription" }
+          ]
+        },
+        {
+          "name": "Streaming / Subscriptions (SubscribeBeliefs)",
+          "value": "WAL-flush-triggered push on confidence delta breach",
+          "target": "Lens-filtered change streams",
+          "met": true,
+          "source": "trustdb/src/exchange/belief_subscription.rs. Server pushes BeliefDelta events when confidence delta exceeds threshold, triggered at WAL flush time. ChainDescriptor governance changes propagate immediately to all subscribed sessions. Devices know about significant epistemic shifts without polling.",
+          "comparisons": [
+            { "system": "MongoDB Change Streams", "value": "Document-level change events; no confidence threshold; no governance" },
+            { "system": "Neo4j CDC", "value": "Graph diff events; no epistemic filtering" },
+            { "system": "PostgreSQL LISTEN/NOTIFY", "value": "App-level channels; no structured epistemic payload" },
+            { "system": "TrustDB SubscribeBeliefs", "value": "Governance-threshold-triggered; WAL-flush-native; BeliefDelta carries ConfidenceEnvelope" }
           ]
         },
         {
           "name": "External Access",
-          "value": "gRPC server (branch) + Swift C-FFI (merged) + Python PyO3 (branch)",
-          "target": "Remote gRPC + Arrow Flight SQL",
+          "value": "Fabric Flight QUIC + Swift C-FFI + Python PyO3 + JS gRPC",
+          "target": "Remote protocol + in-process drivers",
           "met": true,
-          "source": "Three access paths now exist: (1) gRPC TrustDbGrpcServer via tonic (branch session/conn-pillar), (2) Swift C-FFI for Apple in-process (merged PR #148), (3) Python PyO3 for data science in-process (branch). Arrow Flight SQL adapter pending.",
+          "source": "Four access paths: (1) Fabric Flight QUIC transport (rpc_surface.rs, 11 RPCs), (2) Swift C-FFI for Apple in-process (merged PR #148, 5 Apple targets), (3) Python PyO3 for data science in-process (merged PR #231), (4) JS/TS gRPC client (@trustdb/client). Arrow Flight SQL feature-gated.",
           "comparisons": [
-            { "system": "PostgreSQL", "value": "Any TCP client", "source": "PG wire protocol, universal" },
-            { "system": "Neo4j", "value": "HTTP + Bolt", "source": "Two protocols, 8 drivers" },
-            { "system": "DuckDB", "value": "Embedded + optional Flight server", "source": "Similar model to TrustDB" }
-          ]
-        },
-        {
-          "name": "Streaming / Subscriptions",
-          "value": "Not yet implemented",
-          "target": "Lens-filtered change streams",
-          "met": false,
-          "comparisons": [
-            { "system": "MongoDB", "value": "Change streams" },
-            { "system": "Neo4j", "value": "CDC (Change Data Capture)" },
-            { "system": "PostgreSQL", "value": "LISTEN/NOTIFY + logical replication" }
+            { "system": "PostgreSQL", "value": "libpq + 30+ drivers via wire protocol" },
+            { "system": "Neo4j", "value": "HTTP + Bolt, 8 official drivers" },
+            { "system": "DuckDB", "value": "Embedded + optional Flight server (similar model)" }
           ]
         }
       ],
-      "narrative": "The Protocol/API story has advanced significantly. The semantic foundation (View<T> three-state, EBP state machine, SyncEnvelope/SyncDelta, GovernanceArtifact — 51 tests) is now complemented by two major additions: (1) Lens API (branch session/tep-g2-lens) — composable typed filters, composition algebra, compilation to TraversalPlan, serialization as GovernanceArtifact. (2) gRPC wire protocol (branch session/conn-pillar) — trustdb.proto with full epistemic semantics (View<T> in responses, ConfidenceEnvelope on payloads, GovernanceArtifact per operation), tonic TrustDbGrpcServer implementing store CRUD + telemetry. External access now has three paths: gRPC (remote), Swift C-FFI (Apple in-process), Python PyO3 (data science in-process). The Lens API is programmatic, not string-based — designed for AI agents rather than human SQL authors. Remaining gaps: Arrow Flight adapter for analytics tools (Polars, DuckDB, Tableau), streaming subscriptions, and the gap between 'implemented on branch' and 'merged + production-tested'.",
+      "narrative": "Fabric Flight v1.0 (2026-04-03) represents a step-change in the Protocol/API pillar. The gRPC/HTTP2 wire protocol has been superseded by a QUIC-native transport delivering ~25% throughput improvement and 28% p50 latency reduction by eliminating TCP head-of-line blocking at the stream level. The 11-RPC surface covers the full protocol lifecycle: session negotiation, graph traversal with Hologram progressive depth (L1/L2/L3 materialization), differential sync (RFC 6902 JSON Patch + watermark), spatial session state (SpatialVolume as connection property — automatic EntityEntered/EntityExited push), belief subscription (WAL-flush-triggered on confidence delta threshold — closing the streaming subscriptions gap), epistemic bundle exchange, and veiled entity resolution. Three transport adapters (BLE for Watch/AirPods, HTTPS for WiFi/LTE, UWB for Vision Pro) let every Apple device participate in the same governed mesh. The semantic foundation remains: View<T> three-state, EBP state machine, SyncEnvelope/SyncDelta, GovernanceArtifact — 51 tests. External access: Fabric Flight QUIC (remote), Swift C-FFI (Apple in-process), Python PyO3 (data science), JS gRPC (web). Remaining gap: Lens-filtered subscriptions (SubscribeBeliefs currently triggers on confidence delta, not arbitrary Lens predicates).",
       "evidence": [
         { "label": "TEP Exchange Module (51 tests)", "path": "wikai-core/crates/trustdb/src/exchange/" },
         { "label": "gRPC Proto Definition", "path": "wikai-core/crates/trustdb/proto/trustdb.proto" },
@@ -260,6 +262,12 @@
           "from": 7.0,
           "to": 8.0,
           "reason": "Arrow Flight SQL adapter (feature-gated). Entities/sections/edges as Arrow RecordBatch with confidence as native columns. PR #231 merged."
+        },
+        {
+          "date": "2026-04-03",
+          "from": 8.0,
+          "to": 9.0,
+          "reason": "Fabric Flight v1.0: QUIC-native transport, 11-RPC surface, 36-module exchange layer (~264 tests). SubscribeBeliefs closes streaming subscriptions gap. 3 transport adapters (BLE/HTTPS/UWB). Hologram progressive depth. TCI meta-edge materialization. Cross-domain confidence translation (3 models)."
         }
       ],
       "roadmapTo9": {

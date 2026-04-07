@@ -327,7 +327,7 @@ function SourceView() {
           <div className="flex flex-col gap-1 text-xs text-gray-500 border-t border-gray-800 pt-3">
             <div><span className="text-gray-600 font-medium">Run:</span> <code className="bg-gray-800 px-1.5 py-0.5 rounded text-gray-400">{g.runCommand}</code></div>
             <div><span className="text-gray-600 font-medium">Results:</span> <code className="bg-gray-800 px-1.5 py-0.5 rounded text-gray-400">{g.resultPath}</code></div>
-            {'planned' in g && g.planned && <div className="text-yellow-500 mt-1">{g.planned}</div>}
+            {'note' in g && (g as {note?: string}).note && <div className="text-yellow-500 mt-1">{(g as {note?: string}).note}</div>}
           </div>
         </div>
       ))}

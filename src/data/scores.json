@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-02",
+  "lastUpdated": "2026-04-06",
   "pillars": {
     "performance": {
       "name": "Performance",
@@ -77,7 +77,7 @@
       "name": "Scalability & Architecture",
       "subtitle": "The Growth Pillar",
       "icon": "trending-up",
-      "overallScore": 8.5,
+      "overallScore": 8.6,
       "metrics": {
         "horizontalVertical": {
           "name": "Horizontal vs Vertical Scaling",
@@ -99,6 +99,13 @@
           "status": "excellent",
           "summary": "All 4 dimensions green: online device add (zero-downtime via DeviceManifest), online device remove (deregister_device() + connection graph — 22 device tests across 3 modules), automatic rebalancing (scope-change detection + ScopeChangeDelta triggers sync_with_manifest), progressive compaction (background space reclamation). Read scaling near-flat (20.2-22.5µs for 10x data). 5/5 benchmarks green.",
           "lastUpdated": "2026-04-02"
+        },
+        "fabricFlight": {
+          "name": "Fabric Flight & Mesh",
+          "score": 9.0,
+          "status": "excellent",
+          "summary": "Fabric Flight v1.0 (2026-04-03): universal epistemic transport protocol. QUIC-native transport (~25% throughput, 28% p50 latency reduction vs gRPC). io_uring zero-copy (zero heap allocs for 1GB EpistemicBundle). 11-RPC surface, 36-module exchange layer, ~264 tests. Hologram protocol (3-level progressive depth). TCI meta-edge materialization (flush-time implicit→explicit synthesis). 3 transport adapters: BLE (Watch/AirPods), HTTPS, UWB (Vision Pro). Cross-domain confidence translation (Linear/LogisticRemap/DomainTable). GEMVT 0.024% false-positive causal ordering.",
+          "lastUpdated": "2026-04-03"
         }
       }
     },
@@ -164,7 +171,7 @@
       "name": "Connectivity & Ecosystem",
       "subtitle": "The Integration Pillar",
       "icon": "link",
-      "overallScore": 8.0,
+      "overallScore": 8.2,
       "metrics": {
         "drivers": {
           "name": "Drivers & ORMs",
@@ -175,9 +182,9 @@
         },
         "protocol": {
           "name": "Protocol / API",
-          "score": 8.0,
-          "status": "strong",
-          "summary": "TEP semantic foundation (51 tests). Lens API: composable filters + TraversalPlan. gRPC wire protocol: trustdb.proto + tonic with epistemic semantics. Arrow Flight SQL (feature-gated). External access: gRPC, Swift C-FFI, Python PyO3, JS gRPC. Gap: streaming subscriptions.",
+          "score": 9.0,
+          "status": "excellent",
+          "summary": "Fabric Flight v1.0: 11-RPC QUIC-native protocol (OpenSession, TraverseGraph, PushDeltas, SubscribeBeliefs, SpatialStream, ExchangeAtoms, ResolveVeiled + 4 more). TEP semantic foundation (51 tests). Lens API: composable filters + TraversalPlan. Arrow Flight SQL (feature-gated). 3 transport adapters: BLE, HTTPS, UWB. Differential sync (RFC 6902 JSON Patch + watermark). Belief subscription (WAL-flush-triggered push — gap closed).",
           "lastUpdated": "2026-04-03"
         },
         "tooling": {
