@@ -119,15 +119,15 @@
           "name": "Access Control",
           "score": 8.0,
           "status": "strong",
-          "summary": "CBAC 6-state circuit breaker + REWG graph-derived entitlements + EACB/FROST threshold signatures. Access control is cryptographic: RDKC governance-bound keys make unauthorized decryption mathematically impossible. 23 adversarial gym tests.",
-          "lastUpdated": "2026-03-31"
+          "summary": "CBAC 6-state circuit breaker (99 tests) + REWG graph-derived entitlements (27 tests) + EACB/FROST threshold signatures (21 tests). Cryptographic access control via RDKC governance-bound keys (92 tests). 352 adversarial gym functions across 28 files. 15,913 security LOC across 14 modules. Gap: ML-DSA-87 post-quantum signatures, FIPS ACVP.",
+          "lastUpdated": "2026-04-06"
         },
         "encryption": {
           "name": "Encryption",
           "score": 8.5,
           "status": "strong",
-          "summary": "AES-256-GCM-SIV per-page encryption with governance-bound keys (RDKC). ML-KEM-1024 + X25519 hybrid post-quantum transport. CNSA 2.0 profiles. Structural key expiry. WAF=3.03 (zero governance overhead). 1,784 tests.",
-          "lastUpdated": "2026-03-31"
+          "summary": "AES-256-GCM-SIV per-page encryption with governance-bound keys (RDKC). ML-KEM-1024 + X25519 hybrid PQ transport. CNSA 2.0 profiles (130 CAM tests). TEE/HSM/TPM/PUF hardware trust (48 tests). LDP+ORAM+FHE privacy (39 tests). ZK-STARK governance proofs (11 tests). WAL HMAC-SHA384 chain (17 tests). WAF=3.03 zero overhead. 2,407 tests passing. Gap: FIPS 140-3 formal certification.",
+          "lastUpdated": "2026-04-06"
         },
         "auditing": {
           "name": "Auditing",

@@ -2,7 +2,7 @@
   "pillar": "security",
   "pillarName": "Security & Compliance",
   "subtitle": "The Protection Pillar",
-  "overallScore": 8.5,
+  "overallScore": 8.7,
   "sections": [
     {
       "metric": "accessControl",
@@ -12,7 +12,7 @@
       "benchmarks": [
         {
           "name": "CBAC (6-State Governance Circuit Breaker)",
-          "value": "Implemented — 6 states, CAS semantics, 116 tests passing",
+          "value": "Implemented \u2014 6 states, CAS semantics, 99 unit tests + 20 integration tests",
           "target": "Implemented",
           "met": true,
           "comparisons": [
@@ -24,26 +24,26 @@
         },
         {
           "name": "REWG (Graph-Derived Entitlements)",
-          "value": "Implemented — bitwise AND inheritance, TRAVERSE primitive, 27 tests",
+          "value": "Implemented \u2014 bitwise AND inheritance, TRAVERSE primitive, 27 tests",
           "target": "Implemented",
           "met": true,
           "comparisons": [
             { "system": "Google Zanzibar", "value": "ReBAC (separate service, set operations)" },
-            { "system": "Others", "value": "N/A — no competitor derives entitlements from graph position at the storage layer" }
+            { "system": "Others", "value": "N/A \u2014 no competitor derives entitlements from graph position at the storage layer" }
           ]
         },
         {
           "name": "EACB (Human-in-the-Loop FROST Signatures)",
-          "value": "Implemented — N-of-M threshold authorization, 23 tests",
+          "value": "Implemented \u2014 N-of-M threshold authorization, 21 tests",
           "target": "Implemented",
           "met": true,
           "comparisons": [
-            { "system": "Others", "value": "N/A — no database has built-in threshold signature authorization for autonomous operations" }
+            { "system": "Others", "value": "N/A \u2014 no database has built-in threshold signature authorization for autonomous operations" }
           ]
         },
         {
           "name": "Cryptographic Access Enforcement",
-          "value": "RDKC governance-bound keys — 110 RDKC tests, 10 page_crypto tests",
+          "value": "RDKC governance-bound keys \u2014 92 RDKC tests, 11 page_crypto tests, 6 transport tests",
           "target": "Cryptographic",
           "met": true,
           "comparisons": [
@@ -54,11 +54,11 @@
         },
         {
           "name": "Adversarial Testing (Security Gym)",
-          "value": "168 adversarial test functions across 15 gym files targeting access control",
+          "value": "352 adversarial test functions across 28 gym files targeting access control, encryption, privacy, and side-channels",
           "target": "Red team coverage",
           "met": true,
           "comparisons": [
-            { "system": "Others", "value": "N/A — no embedded database ships adversarial access control test suites" }
+            { "system": "Others", "value": "N/A \u2014 no embedded database ships adversarial security test suites" }
           ]
         },
         {
@@ -73,20 +73,19 @@
           ]
         }
       ],
-      "narrative": "Access control is TrustDB's strongest differentiator, backed by 116 CBAC tests, 110 RDKC tests, 23 EACB tests, and 168 adversarial gym test functions. CBAC implements a 6-state governance circuit breaker (Open, Restricted, Suspended, Quarantined, Sealed, EngagementAuthorized) with compare-and-swap semantics. REWG derives entitlements from graph position via bitwise AND — no ACL tables, no policy engine. EACB provides FROST threshold signatures for LAWS 3000.09 human-in-the-loop authorization. Most critically, access control is cryptographic: RDKC derives unique per-page keys from governance state (verified by gym_c02 with 31 correctness tests including avalanche, determinism, and collision detection). A CUI-clearance entity cannot derive the key for a SECRET page — this is verified by gym_g01 clearance boundary battery (6 named attack scenarios) and gym_p01 pre-redaction leakage proof (7 memory-level tests). The gap to 9.5: FIPS ACVP formal validation, timing side-channel proof (gym_s01 exists with 7 tests but needs target-hardware validation), and ML-DSA-87 post-quantum signatures on CBAC audit entries.",
+      "narrative": "Access control is TrustDB's strongest differentiator, backed by 99 CBAC unit tests, 92 RDKC tests, 21 EACB tests, 20 CBAC-RDKC integration tests, and 352 adversarial gym test functions across 28 files. CBAC implements a 6-state governance circuit breaker (Open, Restricted, Suspended, Quarantined, Sealed, EngagementAuthorized) with compare-and-swap semantics. REWG derives entitlements from graph position via bitwise AND \u2014 no ACL tables, no policy engine. EACB provides FROST threshold signatures for LAWS 3000.09 human-in-the-loop authorization. Access control is cryptographic: RDKC derives unique per-page keys from governance state. A CUI-clearance entity cannot derive the key for a SECRET page \u2014 verified by gym_g01 clearance boundary battery and gym_p01 pre-redaction leakage proof. Gap to 9.5: ML-DSA-87 post-quantum signatures (CNSA 2.0), FIPS ACVP formal validation, and timing side-channel proof on target hardware.",
       "evidence": [
-        { "label": "CBAC Module (8 files, 116 tests)", "path": "trustdb/src/cbac/" },
+        { "label": "CBAC Module (99 unit tests)", "path": "trustdb/src/cbac/" },
         { "label": "REWG Module (27 tests)", "path": "trustdb/src/rewg/ + store/rewg_ops.rs" },
-        { "label": "EACB Module (4 files, 23 tests)", "path": "trustdb/src/eacb/" },
-        { "label": "RDKC Module (10 files, 110 tests)", "path": "trustdb/src/rdkc/" },
-        { "label": "Gym: RDKC Correctness (31 tests)", "path": "trustdb/tests/gym_c02_rdkc_correctness.rs" },
-        { "label": "Gym: Clearance Battery (6 attack scenarios)", "path": "trustdb/tests/gym_g01_clearance_boundary.rs" },
-        { "label": "Gym: CBAC Adversarial (20 tests)", "path": "trustdb/tests/gym_g02_cbac_adversarial.rs" },
-        { "label": "Gym: CBAC Exhaustion DDoS (14 tests)", "path": "trustdb/tests/gym_a03_cbac_exhaustion.rs" },
-        { "label": "Gym: Pre-Redaction Leakage (7 tests)", "path": "trustdb/tests/gym_p01_pre_redaction_leakage.rs" }
+        { "label": "EACB Module (21 tests)", "path": "trustdb/src/eacb/" },
+        { "label": "RDKC Module (92 tests)", "path": "trustdb/src/rdkc/" },
+        { "label": "Gym: 28 files, 352 test functions", "path": "trustdb/tests/gym_*.rs" },
+        { "label": "CBAC-RDKC Integration (20 tests)", "path": "trustdb/tests/cbac_rdkc_integration_test.rs" },
+        { "label": "Gym: Clearance Battery", "path": "trustdb/tests/gym_g01_clearance_boundary.rs" },
+        { "label": "Gym: Pre-Redaction Leakage", "path": "trustdb/tests/gym_p01_pre_redaction_leakage.rs" }
       ],
       "history": [
-        { "date": "2026-03-31", "value": "8.0", "note": "CBAC 6-state (PRE-04), RDKC+CBAC wired (B01), EACB/FROST (B02), REWG wired (PRE-03). 116 CBAC tests, 110 RDKC tests, 168 adversarial gym functions. Up from 2.0." }
+        { "date": "2026-04-06", "value": "8.0", "note": "Updated test counts: 99 CBAC, 92 RDKC, 21 EACB, 352 gym functions across 28 files. 15,913 security LOC. 84 modules. Gap: ML-DSA-87, FIPS ACVP." }
       ]
     },
     {
@@ -97,7 +96,7 @@
       "benchmarks": [
         {
           "name": "Encryption at Rest",
-          "value": "AES-256-GCM-SIV per-page — 10 page_crypto tests, 110 RDKC tests",
+          "value": "AES-256-GCM-SIV per-page \u2014 11 page_crypto tests, 92 RDKC tests",
           "target": "AES-256",
           "met": true,
           "comparisons": [
@@ -109,25 +108,25 @@
         },
         {
           "name": "Per-Page Governance-Bound Keys",
-          "value": "Unique key per page from 4 governance inputs — verified by gym_e02 (10 independence tests)",
+          "value": "Unique key per page from 4 governance inputs \u2014 verified by gym_e02 (10 independence tests)",
           "target": "Per-object encryption",
           "met": true,
           "comparisons": [
-            { "system": "All competitors", "value": "Single key for entire database or collection — compromise one key, read everything" }
+            { "system": "All competitors", "value": "Single key for entire database or collection \u2014 compromise one key, read everything" }
           ]
         },
         {
           "name": "Structural Key Expiry",
-          "value": "Keys underivable when governance changes — verified by gym_e01 (12 expiry tests)",
+          "value": "Keys underivable when governance changes \u2014 verified by gym_e01 (12 expiry tests)",
           "target": "Automatic expiry",
           "met": true,
           "comparisons": [
-            { "system": "All competitors", "value": "Manual key rotation or time-based expiry — admin must remember to revoke" }
+            { "system": "All competitors", "value": "Manual key rotation or time-based expiry" }
           ]
         },
         {
           "name": "Post-Quantum Key Transport",
-          "value": "ML-KEM-1024 + X25519 hybrid — 9 transport tests (CNSA 2.0 aligned)",
+          "value": "ML-KEM-1024 + X25519 hybrid \u2014 6 transport tests (CNSA 2.0 aligned)",
           "target": "Post-quantum ready",
           "met": true,
           "comparisons": [
@@ -138,7 +137,7 @@
         },
         {
           "name": "Cryptographic Agility (CAM)",
-          "value": "41 CAM tests — CNSA 2.0 profiles: HKDF-SHA384, AES-256-GCM-SIV, ML-KEM-1024",
+          "value": "130 CAM tests \u2014 CNSA 2.0 profiles: HKDF-SHA384, AES-256-GCM-SIV, ML-KEM-1024",
           "target": "Algorithm agility",
           "met": true,
           "comparisons": [
@@ -152,8 +151,7 @@
           "target": "< 5% overhead",
           "met": true,
           "comparisons": [
-            { "system": "App-layer governance", "value": "131% overhead (measured)" },
-            { "system": "SQLite + app filtering", "value": "SECRET data loaded into memory, then filtered" }
+            { "system": "App-layer governance", "value": "131% overhead (measured)" }
           ]
         },
         {
@@ -162,21 +160,21 @@
           "target": "No IV reuse",
           "met": true,
           "comparisons": [
-            { "system": "Others", "value": "N/A — most databases use whole-DB encryption without per-page nonce management" }
+            { "system": "Others", "value": "N/A \u2014 most use whole-DB encryption without per-page nonce management" }
           ]
         },
         {
           "name": "Key Cache Safety",
-          "value": "gym_e05: 13 tests — cache invalidation on epoch change, no stale key serving",
+          "value": "gym_e05: 13 tests \u2014 cache invalidation on epoch change, no stale key serving",
           "target": "No stale keys",
           "met": true,
           "comparisons": [
-            { "system": "Others", "value": "N/A — no competitor has governance-aware key caching" }
+            { "system": "Others", "value": "N/A \u2014 no competitor has governance-aware key caching" }
           ]
         },
         {
           "name": "Background Re-encryption",
-          "value": "A07: rekey.rs — 25 tests, grace period, multi-epoch fallback for reads during rotation",
+          "value": "rekey.rs \u2014 25 tests, grace period, multi-epoch fallback for reads during rotation",
           "target": "Automatic re-key",
           "met": true,
           "comparisons": [
@@ -185,46 +183,73 @@
           ]
         },
         {
+          "name": "Hardware Security Modules",
+          "value": "TEE (26 tests), HSM (7 tests), TPM (8 tests), PUF (7 tests), VDF (11 tests) \u2014 all abstracted with mock + real paths",
+          "target": "Hardware trust chain",
+          "met": true,
+          "comparisons": [
+            { "system": "Others", "value": "N/A \u2014 no embedded database integrates TEE/HSM/TPM/PUF at the storage layer" }
+          ]
+        },
+        {
+          "name": "Privacy Layers",
+          "value": "LDP (11 tests), ORAM (9 tests), FHE (19 tests) \u2014 differential privacy, oblivious RAM, homomorphic encryption",
+          "target": "Multi-layer privacy",
+          "met": true,
+          "comparisons": [
+            { "system": "Others", "value": "N/A \u2014 no database combines LDP + ORAM + FHE at the storage layer" }
+          ]
+        },
+        {
+          "name": "ZK-STARK Governance Proofs",
+          "value": "zk/ module (11 tests) \u2014 governance state verification without revealing classified inputs",
+          "target": "Zero-knowledge proofs",
+          "met": true,
+          "comparisons": [
+            { "system": "Others", "value": "N/A \u2014 no database generates ZK proofs of governance compliance" }
+          ]
+        },
+        {
+          "name": "WAL Tamper Protection",
+          "value": "HMAC-SHA384 chained format (PR #247) \u2014 33 WAL tests total. Per-record WalProvenance. ACVP test vectors (RFC 4231)",
+          "target": "Chained HMAC with per-record provenance",
+          "met": true,
+          "source": "PR #247. Chained HMAC: each tag = HMAC(key, prev_tag || provenance || data). WalProvenance: 26 bytes per record. CNSA 2.0 compliant.",
+          "comparisons": [
+            { "system": "PostgreSQL", "value": "CRC-32C (non-cryptographic)" },
+            { "system": "RocksDB", "value": "CRC-32C (non-cryptographic)" },
+            { "system": "CockroachDB", "value": "CRC32c on Raft entries" }
+          ]
+        },
+        {
           "name": "FIPS 140-3 Validation",
-          "value": "Not formally submitted — ACVP vectors built (gym_c01: 9 tests) but not NIST-submitted",
+          "value": "Not formally submitted \u2014 ACVP vectors built, algorithms implemented, boundary not yet formalized",
           "target": "FIPS 140-3 Level 1",
           "met": false,
           "comparisons": [
             { "system": "SQLCipher", "value": "FIPS 140-2 validated (paid)" },
             { "system": "MongoDB Enterprise", "value": "FIPS 140-2 validated" }
           ]
-        },
-        {
-          "name": "WAL Tamper Protection",
-          "value": "HMAC-SHA384 chained format (PR #247) — 33 WAL tests total. Per-record WalProvenance (agent_id, clearance, connectivity, timestamp). ACVP test vectors (RFC 4231)",
-          "target": "Chained HMAC with per-record provenance",
-          "met": true,
-          "source": "PR #247. Chained HMAC: each tag = HMAC(key, prev_tag || provenance || data). Tamper any record → invalidates entire downstream chain. WalProvenance: 26 bytes per record (NIST AU-10 non-repudiation). Static or RDKC-derived key modes. CNSA 2.0 compliant. ACVP vectors for NIST CAVP submission.",
-          "comparisons": [
-            { "system": "PostgreSQL", "value": "CRC-32C (non-cryptographic)", "source": "Corruption detection only — no chain, no provenance" },
-            { "system": "RocksDB", "value": "CRC-32C (non-cryptographic)", "source": "Same limitation" },
-            { "system": "CockroachDB", "value": "CRC32c on Raft entries", "source": "Non-cryptographic, no per-record provenance" }
-          ]
         }
       ],
-      "narrative": "Encryption is TrustDB's defining capability, backed by 110 RDKC tests, 41 CAM tests, 10 page_crypto tests, 9 transport tests, 25 rekey tests, and 89 adversarial gym test functions across 10 gym files. Every 16KB page is encrypted with AES-256-GCM-SIV (nonce-misuse resistant) using a unique key derived by RDKC from four governance inputs: CBAC state, GEMVT clearance, REWG entitlements, and temporal window. This is verified by gym_e02 (10 input independence tests proving each governance dimension is a live cryptographic dependency) and gym_c02 (31 correctness tests: determinism across 10K runs, avalanche effect, 1M collision search). Structural key expiry is verified by gym_e01 (12 tests proving keys become mathematically underivable when governance state changes — not revoked, not expired, impossible to derive). Post-quantum key transport (ML-KEM-1024 + X25519 hybrid, 9 tests) exceeds every competitor. WAF=3.03 invariance proves the entire stack adds zero additional I/O. Gap to 9.5: FIPS 140-3 formal submission (ACVP vectors exist in gym_c01 but haven't been submitted to NIST). WAL HMAC chain now complete (PR #247 — chained HMAC-SHA384 with per-record WalProvenance, 33 WAL tests).",
+      "narrative": "Encryption is TrustDB's defining capability. 125,181 total LOC across 527 source files in 84 modules. Security-specific: 15,913 LOC across 14 security modules (rdkc, cam, cbac, eacb, tee, zk, fhe, hsm, tpm, puf, vdf, ldp, oram, wal) with 451 unit tests + 352 adversarial gym functions. Every 16KB page encrypted with AES-256-GCM-SIV using a unique key derived by RDKC from 4 governance inputs. ML-KEM-1024 + X25519 hybrid post-quantum transport. TEE/HSM/TPM/PUF hardware trust chain. LDP + ORAM + FHE privacy layers. ZK-STARK governance proofs. WAF=3.03 invariance (zero governance overhead). WAL HMAC-SHA384 chained with per-record provenance. Gap to 9.5: FIPS 140-3 formal submission (implementation ready, certification process not started).",
       "evidence": [
-        { "label": "RDKC Module (10 files, 110 tests)", "path": "trustdb/src/rdkc/" },
-        { "label": "CAM Module (7 files, 41 tests)", "path": "trustdb/src/cam/" },
-        { "label": "Page Crypto (10 tests)", "path": "trustdb/src/rdkc/page_crypto.rs" },
-        { "label": "Transport (9 tests, ML-KEM-1024)", "path": "trustdb/src/rdkc/transport.rs" },
-        { "label": "Re-encryption (25 tests)", "path": "trustdb/src/rdkc/rekey.rs" },
-        { "label": "Gym: RDKC Correctness (31 tests)", "path": "trustdb/tests/gym_c02_rdkc_correctness.rs" },
-        { "label": "Gym: Structural Expiry (12 tests)", "path": "trustdb/tests/gym_e01_structural_expiry.rs" },
-        { "label": "Gym: Input Independence (10 tests)", "path": "trustdb/tests/gym_e02_input_independence.rs" },
-        { "label": "Gym: Nonce Safety (12 tests)", "path": "trustdb/tests/gym_c04_nonce_safety.rs" },
-        { "label": "Gym: Key Cache Safety (13 tests)", "path": "trustdb/tests/gym_e05_key_cache_safety.rs" },
-        { "label": "Gym: CNSA 2.0 Compliance (19 tests)", "path": "trustdb/tests/gym_c03_cnsa2_compliance.rs" },
-        { "label": "Gym: ACVP Hardware Identity (9 tests)", "path": "trustdb/tests/gym_c01_hardware_identity.rs" },
-        { "label": "Gym: Pre-Redaction Leakage (7 tests)", "path": "trustdb/tests/gym_p01_pre_redaction_leakage.rs" }
+        { "label": "RDKC (92 tests)", "path": "trustdb/src/rdkc/" },
+        { "label": "CAM (130 tests)", "path": "trustdb/src/cam/" },
+        { "label": "CBAC (99 tests)", "path": "trustdb/src/cbac/" },
+        { "label": "EACB (21 tests)", "path": "trustdb/src/eacb/" },
+        { "label": "TEE (26 tests)", "path": "trustdb/src/tee/" },
+        { "label": "ZK (11 tests)", "path": "trustdb/src/zk/" },
+        { "label": "FHE (19 tests)", "path": "trustdb/src/fhe/" },
+        { "label": "HSM+TPM+PUF (22 tests)", "path": "trustdb/src/hsm/ + tpm/ + puf/" },
+        { "label": "VDF+LDP+ORAM (31 tests)", "path": "trustdb/src/vdf/ + ldp/ + oram/" },
+        { "label": "WAL (17 tests inc HMAC chain)", "path": "trustdb/src/wal/wal.rs" },
+        { "label": "Gym: 28 files, 352 functions", "path": "trustdb/tests/gym_*.rs" },
+        { "label": "Page Crypto (11 tests)", "path": "trustdb/src/rdkc/page_crypto.rs" },
+        { "label": "Transport (6 tests)", "path": "trustdb/src/rdkc/transport.rs" }
       ],
       "history": [
-        { "date": "2026-03-31", "value": "8.5", "note": "Full per-page encryption: RDKC (A01, 110 tests), AES-256-GCM-SIV (B01, 10 page_crypto tests), ML-KEM-1024 transport (B03, 9 tests), CNSA 2.0 profiles (A06, 41 CAM tests), re-encryption (A07, 25 tests), 89 adversarial gym functions. Gaps: FIPS formal submission, WAL HMAC. Up from 3.0." }
+        { "date": "2026-04-06", "value": "8.5", "note": "Updated: 125K LOC, 527 files, 84 modules. Security: 15,913 LOC, 451 unit tests, 352 gym functions. 14 security modules. Gap: FIPS 140-3 formal submission." }
       ]
     },
     {
@@ -235,122 +260,110 @@
       "benchmarks": [
         {
           "name": "Provenance Tracking",
-          "value": "Per-entity ProvenanceChain — inline with LeafEntry, zero query overhead",
+          "value": "Per-entity ProvenanceChain \u2014 inline with LeafEntry, zero query overhead",
           "target": "Active",
           "met": true,
           "comparisons": [
             { "system": "PostgreSQL", "value": "pg_audit extension (5\u201315% overhead)" },
-            { "system": "Neo4j", "value": "Security log (Enterprise only)" },
+            { "system": "Neo4j", "value": "Security log (Enterprise)" },
             { "system": "MongoDB", "value": "Change streams + audit log (5\u201310% overhead)" },
             { "system": "SQLite", "value": "None built-in" }
           ]
         },
         {
           "name": "Transaction Co-occurrence (TCI)",
-          "value": "Auto-recorded at flush time — discovers implicit relationships with zero additional I/O",
+          "value": "Auto-recorded at flush time \u2014 discovers implicit relationships with zero additional I/O",
           "target": "Active",
           "met": true,
           "comparisons": [
-            { "system": "Others", "value": "N/A — no competitor discovers implicit entity relationships at flush time" }
+            { "system": "Others", "value": "N/A \u2014 no competitor discovers implicit entity relationships at flush time" }
           ]
         },
         {
           "name": "CBAC State Transition Audit",
-          "value": "Immutable CAS-versioned log of all governance state changes — 116 CBAC tests verify transitions",
+          "value": "Immutable CAS-versioned log of all governance state changes \u2014 99 CBAC tests verify transitions",
           "target": "Active",
           "met": true,
           "comparisons": [
-            { "system": "Others", "value": "N/A — no competitor logs confidence-based access control state transitions" }
+            { "system": "Others", "value": "N/A \u2014 no competitor logs confidence-based access control state transitions" }
           ]
         },
         {
           "name": "Query Performance Impact",
-          "value": "Zero (inline with LeafEntry) — WAF 3.03 invariant with full governance stack",
+          "value": "Zero (inline with LeafEntry) \u2014 WAF 3.03 invariant with full governance stack",
           "target": "No overhead",
           "met": true,
           "comparisons": [
-            { "system": "pg_audit", "value": "5\u201315% overhead (trigger-based)" },
+            { "system": "pg_audit", "value": "5\u201315% overhead" },
             { "system": "MongoDB audit", "value": "5\u201310% overhead" }
           ]
         },
         {
           "name": "Adversarial Audit Tests",
-          "value": "gym_g02 (20 CBAC adversarial tests), gym_a01 (18 swarm conflict tests), gym_a02 (10 confidence injection tests)",
+          "value": "gym_g02 (20 CBAC adversarial), gym_a01 (18 swarm conflict), gym_a02 (10 confidence injection), gym_a03 (14 CBAC exhaustion)",
           "target": "Red team coverage",
           "met": true,
           "comparisons": [
-            { "system": "Others", "value": "N/A — no database ships adversarial audit integrity tests" }
+            { "system": "Others", "value": "N/A \u2014 no database ships adversarial audit integrity tests" }
           ]
         },
         {
           "name": "WAL HMAC Chain (Tamper-Proof Audit)",
-          "value": "HMAC-SHA384 chained format (PR #247) — 33 WAL tests total (9 HMAC-specific, 14 WAL integration, 8 epoch WAL, 2 partitioned WAL)",
+          "value": "HMAC-SHA384 chained format (PR #247) \u2014 33 WAL tests total. Per-record WalProvenance (agent_id, clearance, connectivity, timestamp). ACVP vectors (RFC 4231)",
           "target": "Chained HMAC with per-record provenance",
           "met": true,
-          "source": "PR #247. Chained HMAC format v2: [0xCB magic][provenance:26B][record:N][hmac_tag:48B] = 75 bytes overhead per record. WalProvenance per record (26 bytes): agent_id (16B AgentId), clearance (1B CBAC level), connectivity (1B Online/Offline/Unknown), write_ts_ms (8B wall-clock). Chain computation: each tag = HMAC(key, prev_tag || provenance || data) — tampering any record invalidates all subsequent records (non-repudiation). Key modes: (1) static key for accidental corruption detection, (2) RDKC-derived key from governance context for NIST AU-10 classified deployments. ACVP test vectors (RFC 4231 TC2/TC3) for NIST CAVP validation prep. Backward compatible: supports v2 chained + v1 HMAC + legacy FNV recovery paths. CNSA 2.0 compliant.",
+          "source": "PR #247. Chained HMAC: each tag = HMAC(key, prev_tag || provenance || data). WalProvenance: 26 bytes per record (NIST AU-10 non-repudiation). Static or RDKC-derived key modes. CNSA 2.0 compliant.",
           "comparisons": [
-            { "system": "PostgreSQL", "value": "CRC-32C (non-cryptographic)", "source": "Detects accidental corruption only — not adversarial tampering" },
-            { "system": "RocksDB", "value": "CRC-32C (non-cryptographic)", "source": "Same limitation — no chain, no provenance" },
-            { "system": "MongoDB", "value": "No WAL integrity checks", "source": "WiredTiger journal has no checksums exposed" },
-            { "system": "CockroachDB", "value": "CRC32c on Raft log entries", "source": "Non-cryptographic, no per-record provenance" }
+            { "system": "PostgreSQL", "value": "CRC-32C (non-cryptographic)" },
+            { "system": "RocksDB", "value": "CRC-32C (non-cryptographic)" },
+            { "system": "CockroachDB", "value": "CRC32c on Raft entries" }
           ]
         },
         {
           "name": "SSP Evidence Appendix (NIST SP 800-53)",
-          "value": "GYM-R01 — automated control mapping from test evidence to NIST controls",
+          "value": "GYM-R01 \u2014 automated control mapping from 28 gym files to 9 NIST control families",
           "target": "NIST mapping",
           "met": true,
-          "source": "GYM-R01 merged to main. System Security Plan evidence appendix auto-generated from gym test results. Maps TrustDB security tests to NIST SP 800-53 controls (AC, AU, SC, IA families). Verifiable compliance evidence from actual test execution, not self-certification.",
+          "source": "GYM-R01 on main. Maps tests to AC-3, AU-2, IA-3, SC-8, SC-12, SC-13, SC-28, SI-7, SI-16.",
           "comparisons": [
-            { "system": "PostgreSQL", "value": "Manual STIG compliance", "source": "Admin creates documentation manually" },
-            { "system": "MongoDB", "value": "Manual compliance docs", "source": "Security checklist, not automated" },
-            { "system": "TrustDB", "value": "Auto-generated from gym tests", "source": "Test results → NIST control mapping" }
+            { "system": "PostgreSQL", "value": "Manual STIG compliance" },
+            { "system": "MongoDB", "value": "Manual compliance docs" }
           ]
         },
         {
           "name": "Compliance Export (SOX/HIPAA/NIST)",
-          "value": "ComplianceReport with 7 control attestations (PR #250). SOX 404, HIPAA 164.312(b)/(c)(1), NIST AU-2/3/10/12. Time-window filtering, JSON serialization",
+          "value": "ComplianceReport with 7 control attestations (PR #250). SOX 404, HIPAA 164.312(b)/(c)(1), NIST AU-2/3/10/12",
           "target": "NIST/SOX/HIPAA format",
           "met": true,
-          "source": "PR #250. ComplianceReport generates structured compliance evidence from WAL HMAC chain and provenance data. 7 control attestations: SOX Section 404 (ICFR), HIPAA 164.312(b) (Audit Controls), HIPAA 164.312(c)(1) (Integrity), NIST AU-2 (Auditable Events), NIST AU-3 (Content of Audit Records), NIST AU-10 (Non-repudiation), NIST AU-12 (Audit Generation). Time-window filtering for period-based compliance reporting. JSON serialization for automated compliance tooling.",
           "comparisons": [
-            { "system": "PostgreSQL", "value": "pgaudit CSV export", "source": "Manual mapping to compliance controls required" },
-            { "system": "MongoDB", "value": "JSON audit log export", "source": "No built-in compliance control mapping" },
-            { "system": "TrustDB", "value": "Auto-mapped to 7 compliance controls", "source": "Structured evidence from WAL provenance chain" }
+            { "system": "PostgreSQL", "value": "pgaudit CSV export" },
+            { "system": "MongoDB", "value": "JSON audit log export" }
           ]
         },
         {
           "name": "SIEM Integration (CEF/STIX)",
-          "value": "CEF for ArcSight/Splunk + STIX 2.1 bundles for Sentinel/Elastic (PR #250). 4 event types with severity mapping",
-          "target": "CEF + STIX 2.1",
+          "value": "CEF for ArcSight/Splunk + STIX 2.1 for Sentinel/Elastic (PR #250). 4 event types.",
+          "target": "CEF + STIX",
           "met": true,
-          "source": "PR #250. CEF (Common Event Format): ArcSight/Splunk compatible event export with severity mapping (1-10 scale). STIX 2.1 bundles: Sentinel/Elastic compatible threat intelligence format. 4 event types: governance state change, access control violation, WAL integrity alert, provenance chain break. Each event carries full WalProvenance context (agent_id, clearance, connectivity, timestamp).",
           "comparisons": [
-            { "system": "Neo4j Enterprise", "value": "Syslog integration", "source": "Basic syslog, no STIX" },
-            { "system": "MongoDB", "value": "SIEM-compatible JSON", "source": "Custom JSON, not CEF/STIX standard" },
-            { "system": "PostgreSQL", "value": "pgaudit → syslog", "source": "Requires external pipeline for SIEM" }
+            { "system": "Neo4j Enterprise", "value": "Syslog integration" },
+            { "system": "MongoDB", "value": "SIEM-compatible JSON" }
           ]
         }
       ],
-      "narrative": "Auditing is now a flagship capability (9.5) with all previously identified gaps closed. WAL HMAC chain (PR #247): chained HMAC-SHA384 format where each record's tag covers the previous tag plus WalProvenance (agent_id, clearance, connectivity, timestamp), creating a cryptographic chain of custody. 33 WAL tests across 4 modules. Per-record provenance at 26 bytes delivers NIST AU-10 (Non-repudiation) compliance. Compliance export (PR #250): ComplianceReport generates structured evidence mapped to 7 control attestations (SOX 404, HIPAA 164.312(b)/(c)(1), NIST AU-2/3/10/12) with time-window filtering. SIEM integration (PR #250): CEF for ArcSight/Splunk and STIX 2.1 bundles for Sentinel/Elastic, with 4 event types and severity mapping. GYM-R01 SSP Evidence Appendix auto-generates NIST SP 800-53 mappings from gym test results. ProvenanceChain tracks who/what/when at zero overhead (inline with LeafEntry). TCI discovers implicit relationships at flush time. CBAC state transition logging records every governance change (116 tests + 20 adversarial). 42 total security/audit tests. TrustDB is now the only embedded database with cryptographic per-record WAL provenance, automated compliance reporting, and native SIEM export in both CEF and STIX formats.",
+      "narrative": "Auditing is the most complete pillar at 9.5. ProvenanceChain tracks who/what/when on every entity at zero overhead. TCI discovers implicit relationships at flush time. CBAC audit trail records every state change with CAS-versioned immutability. WAL HMAC-SHA384 chained format (PR #247) provides tamper-proof audit with per-record provenance (agent_id, clearance, connectivity, timestamp) \u2014 26 bytes overhead, 33 tests, ACVP vectors for NIST validation prep. Compliance export (PR #250) covers SOX 404, HIPAA, NIST AU controls. SIEM integration outputs CEF for Splunk/ArcSight and STIX 2.1 for Sentinel/Elastic. GYM-R01 SSP Evidence maps 28 gym files to 9 NIST SP 800-53 control families. The only gap to 10.0: FIPS 140-3 lab certification of the HMAC implementation (process, not engineering).",
       "evidence": [
-        { "label": "WAL HMAC Module (439 LOC, 9 tests)", "path": "wikai-core/crates/trustdb/src/wal/hmac.rs" },
-        { "label": "WAL Core (693 LOC, 14 tests)", "path": "wikai-core/crates/trustdb/src/wal/wal.rs" },
-        { "label": "Epoch WAL (281 LOC, 8 tests)", "path": "wikai-core/crates/trustdb/src/wal/epoch_wal.rs" },
-        { "label": "Partitioned WAL (125 LOC, 2 tests)", "path": "wikai-core/crates/trustdb/src/wal/partitioned_wal.rs" },
-        { "label": "Provenance Module", "path": "wikai-core/crates/trustdb/src/primitives/provenance.rs" },
-        { "label": "TCI Module", "path": "wikai-core/crates/trustdb/src/tci/" },
-        { "label": "CBAC Audit (116 tests)", "path": "wikai-core/crates/trustdb/src/cbac/audit.rs" },
-        { "label": "SSP Evidence Appendix (GYM-R01)", "path": "wikai-core/crates/trustdb/tests/gym_r01_ssp_evidence.rs" },
-        { "label": "Gym: CBAC Adversarial (20 tests)", "path": "wikai-core/crates/trustdb/tests/gym_g02_cbac_adversarial.rs" },
-        { "label": "Gym: Swarm Conflict (18 tests)", "path": "wikai-core/crates/trustdb/tests/gym_a01_swarm_conflict.rs" },
-        { "label": "Gym: Confidence Injection (10 tests)", "path": "wikai-core/crates/trustdb/tests/gym_a02_confidence_injection.rs" }
+        { "label": "Provenance Module", "path": "trustdb/src/primitives/provenance.rs" },
+        { "label": "TCI Module", "path": "trustdb/src/tci/" },
+        { "label": "CBAC Audit (99 tests)", "path": "trustdb/src/cbac/audit.rs" },
+        { "label": "WAL HMAC Chain (17 tests)", "path": "trustdb/src/wal/wal.rs" },
+        { "label": "Compliance Export (PR #250)", "path": "trustdb/src/store/compliance_export.rs" },
+        { "label": "SIEM Integration (PR #250)", "path": "trustdb/src/store/siem_export.rs" },
+        { "label": "GYM-R01 SSP Evidence", "path": "trustdb/tests/gym_r01_ssp_evidence.rs" },
+        { "label": "Gym: Adversarial (62 tests)", "path": "trustdb/tests/gym_a01..a03 + gym_g02" }
       ],
       "history": [
-        { "date": "2026-03-31", "value": "7.0", "note": "CBAC audit trail added. 48 adversarial gym functions. Gaps: WAL HMAC, compliance export, SIEM." },
-        { "date": "2026-04-01", "value": "8.0", "note": "PRE-05 WAL HMAC-SHA384 (7 tests) + GYM-R01 SSP Evidence Appendix (NIST SP 800-53 mapping). WAL tamper-proof." },
-        { "date": "2026-04-02", "value": "9.0", "note": "PR #247 WAL HMAC chain: chained format (each tag covers prev_tag + provenance + data), WalProvenance per record (26B: agent_id, clearance, connectivity, timestamp), RDKC-derived key mode, ACVP vectors. 33 WAL tests total." },
-        { "date": "2026-04-03", "value": "9.5", "note": "PR #250: ComplianceReport (7 control attestations: SOX 404, HIPAA, NIST AU-2/3/10/12) + SIEM integration (CEF for ArcSight/Splunk, STIX 2.1 for Sentinel/Elastic, 4 event types). All auditing gaps closed. 42 total tests." }
+        { "date": "2026-04-06", "value": "9.5", "note": "Updated test counts. WAL HMAC chain (PR #247), compliance export + SIEM (PR #250), GYM-R01 SSP evidence all on main." }
       ]
     }
   ]
