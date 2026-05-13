@@ -3,11 +3,11 @@
   "name": "Copy-on-Write MVCC",
   "category": "Storage Engine",
   "status": "implemented",
-  "overview": "TrustDB implements Copy-on-Write Multi-Version Concurrency Control with Serializable Snapshot Isolation (SSI). Writers create new page versions instead of modifying pages in place, so readers never block writers and vice versa. EpochGuard-based garbage collection reclaims old versions once no active reader references them.",
+  "overview": "TrustDB implements Copy-on-Write Multi-Version Concurrency Control with Snapshot Isolation (SI). Writers create new page versions instead of modifying pages in place, so readers never block writers and vice versa. EpochGuard-based garbage collection reclaims old versions once no active reader references them. NOTE: full SSI (write-set conflict detection / write-skew prevention) is a roadmap item; current commit path provides Snapshot Isolation only.",
   "howItWorks": [
     { "step": "1", "title": "Snapshot Acquisition", "description": "Each transaction acquires a snapshot by recording the current root page ID. All reads follow page pointers from this root, seeing a consistent point-in-time view regardless of concurrent writes." },
     { "step": "2", "title": "Copy-on-Write", "description": "When a transaction modifies a page, it copies the page, applies the modification to the copy, and updates the path from the modified page to the root. The original pages remain untouched for active readers." },
-    { "step": "3", "title": "Serializable Snapshot Isolation", "description": "SSI detects write-write conflicts and dangerous read-write anti-dependencies at commit time. Conflicting transactions are aborted and retried. This provides serializable isolation without the performance cost of traditional two-phase locking." },
+    { "step": "3", "title": "Snapshot Isolation (SSI planned)", "description": "Current commit path provides Snapshot Isolation: writers see their own writes; readers see a consistent committed snapshot. SSI (write-set conflict detection / write-skew prevention) is roadmap — the structural primitives (conflict_graph, epoch_guard, partitioned_tx) ship as modules but are not yet wired into tx::transaction::commit()." },
     { "step": "4", "title": "EpochGuard GC", "description": "EpochGuard tracks which snapshots are still active. When the oldest active snapshot advances past a version, the old pages become eligible for reclamation. GC runs asynchronously without blocking reads or writes." }
   ],
   "benchmarks": [
@@ -42,7 +42,7 @@
     }
   ],
   "comparisons": {
-    "narrative": "CoW MVCC is a proven design used by LMDB, BoltDB, and (conceptually) ZFS/Btrfs. TrustDB's implementation adds SSI for full serializability, which LMDB achieves differently (single-writer). PostgreSQL's MVCC is more mature and handles more edge cases, but its VACUUM-based GC can cause performance issues that EpochGuard avoids. The main tradeoff is write amplification from path copying.",
+    "narrative": "CoW MVCC is a proven design used by LMDB, BoltDB, and (conceptually) ZFS/Btrfs. TrustDB's implementation currently provides Snapshot Isolation; SSI is on the roadmap. PostgreSQL's MVCC is more mature and handles more edge cases, but its VACUUM-based GC can cause performance issues that EpochGuard avoids. The main tradeoff is write amplification from path copying.",
     "competitors": [
       { "system": "PostgreSQL", "approach": "In-place MVCC with dead tuple tracking and VACUUM GC", "limitation": "VACUUM can cause I/O spikes; bloat accumulation; more mature but operationally complex" },
       { "system": "LMDB", "approach": "Single-writer CoW B-tree with no GC needed", "limitation": "Single writer eliminates GC concern but limits write concurrency" },
@@ -52,7 +52,7 @@
   },
   "evidence": [
     { "label": "CoW page management", "path": "trustdb/src/tree/cow.rs" },
-    { "label": "SSI conflict detection", "path": "trustdb/src/txn/ssi.rs" },
+    { "label": "SSI conflict detection (modules ship; not wired into commit path yet)", "path": "trustdb/src/concurrency/conflict_graph.rs" },
     { "label": "EpochGuard GC", "path": "trustdb/src/gc/epoch_guard.rs" },
     { "label": "MVCC snapshot", "path": "trustdb/src/txn/snapshot.rs" }
   ],

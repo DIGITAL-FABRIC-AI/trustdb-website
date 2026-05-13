@@ -133,7 +133,7 @@
         {
           "slug": "cow-mvcc",
           "name": "CoW MVCC Transactions",
-          "tagline": "Copy-on-write snapshots with Serializable Snapshot Isolation \u2014 readers never block writers",
+          "tagline": "Copy-on-write snapshots with Snapshot Isolation \u2014 readers never block writers (SSI on roadmap)",
           "status": "implemented"
         },
         {

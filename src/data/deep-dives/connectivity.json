@@ -38,7 +38,7 @@
           "value": "C-FFI wrapper + SwiftUI demo — iOS, watchOS, macOS, tvOS, visionOS. 5 static lib targets verified, 4 FFI tests",
           "target": "Stable driver via C-FFI",
           "met": true,
-          "source": "PR #148 (merged). TrustDbNvm.swift: idiomatic wrapper with NvmCapabilities, NvmBatteryState, NvmBenchmarkResult, NvmRegion types. TrustDbNvm.h: C bridging header. #[no_mangle] extern 'C' FFI for lifecycle, capabilities, battery-aware persistence, byte-addressable I/O, messaging benchmark. Static libs for 5 targets: aarch64-apple-ios, aarch64-apple-ios-sim, aarch64-apple-watchos, aarch64-apple-watchos-sim, aarch64-apple-darwin. Plus: SwiftUI demo app (TrustDbDemoiOS) with auto-detected hardware display, battery-aware persistence tier picker, 100K ops iMessage benchmark. Xcode project via xcodegen. All hardware auto-detected via HardwareProfile::detect().",
+          "source": "FabricRS PR #148 (merged). TrustDbNvm.swift: idiomatic wrapper with NvmCapabilities, NvmBatteryState, NvmBenchmarkResult, NvmRegion types. TrustDbNvm.h: C bridging header. #[no_mangle] extern 'C' FFI for lifecycle, capabilities, battery-aware persistence, byte-addressable I/O, messaging benchmark. Static libs for 5 targets: aarch64-apple-ios, aarch64-apple-ios-sim, aarch64-apple-watchos, aarch64-apple-watchos-sim, aarch64-apple-darwin. Plus: SwiftUI demo app (TrustDbDemoiOS) with auto-detected hardware display, battery-aware persistence tier picker, 100K ops iMessage benchmark. Xcode project via xcodegen. All hardware auto-detected via HardwareProfile::detect().",
           "comparisons": [
             { "system": "SQLite", "value": "Built into iOS/macOS", "source": "System framework, always available" },
             { "system": "Core Data", "value": "Native Apple framework", "source": "First-class, iCloud sync" },
@@ -50,7 +50,7 @@
           "value": "Battery-aware sync, Watch/AirPods delta sync (BLE), Vision Pro spatial scoping (branch)",
           "target": "Deep Apple integration",
           "met": true,
-          "source": "PR #218 branch. Power-shaped sync: Charging=aggressive, Balanced=normal, LowBattery=conservative, LPM=read-only (205 LOC). Delta sync: binary deltas sized for Watch BLE (~50KB/s) and AirPods (~20KB/s) (169 LOC). Spatial-temporal scoping: geofence, named zones, bounding boxes, Vision Pro room-aware sync, Haversine distance (158 LOC). This is the 'always-on intelligence' layer — TrustDB adapts to each Apple device's power, bandwidth, and spatial context automatically.",
+          "source": "FabricRS PR #218 branch. Power-shaped sync: Charging=aggressive, Balanced=normal, LowBattery=conservative, LPM=read-only (205 LOC). Delta sync: binary deltas sized for Watch BLE (~50KB/s) and AirPods (~20KB/s) (169 LOC). Spatial-temporal scoping: geofence, named zones, bounding boxes, Vision Pro room-aware sync, Haversine distance (158 LOC). This is the 'always-on intelligence' layer — TrustDB adapts to each Apple device's power, bandwidth, and spatial context automatically.",
           "comparisons": [
             { "system": "Core Data", "value": "iCloud sync (all-or-nothing)", "source": "No power-aware scheduling, no spatial scoping" },
             { "system": "Realm", "value": "Atlas Device Sync", "source": "Partition-based, no battery awareness, no spatial" },
@@ -68,7 +68,7 @@
           ]
         }
       ],
-      "narrative": "The drivers story has transformed from Rust-only to a three-language foundation. Swift is now a first-class citizen: C-FFI wrapper (TrustDbNvm.swift) with idiomatic types, static libraries verified for all 5 Apple targets (iOS, iOS Simulator, watchOS, watchOS Simulator, macOS), a SwiftUI demo app with hardware auto-detection and battery-aware persistence, and Xcode project generation. This directly competes with Core Data and Realm — TrustDB is the only embedded database with governance-aware sync across the entire Apple device fleet (Mac, iPhone, iPad, Watch, Vision Pro, AirPods). Python driver (branch) adds epistemic types as first-class objects: BoundedFloat, ConfidenceType, ViewState three-state, with type stubs for IDE autocompletion. Beyond basic drivers, the Apple ecosystem integration (PR #218) adds power-shaped sync (battery-aware scheduling), delta sync for BLE-constrained devices (Watch, AirPods), and spatial-temporal scoping (Vision Pro room-aware). No competitor offers this depth of Apple integration. Gap: JavaScript/Node.js driver and Lens API exposure in Python.",
+      "narrative": "The drivers story has transformed from Rust-only to a three-language foundation. Swift is now a first-class citizen: C-FFI wrapper (TrustDbNvm.swift) with idiomatic types, static libraries verified for all 5 Apple targets (iOS, iOS Simulator, watchOS, watchOS Simulator, macOS), a SwiftUI demo app with hardware auto-detection and battery-aware persistence, and Xcode project generation. This directly competes with Core Data and Realm — TrustDB is the only embedded database with governance-aware sync across the entire Apple device fleet (Mac, iPhone, iPad, Watch, Vision Pro, AirPods). Python driver (branch) adds epistemic types as first-class objects: BoundedFloat, ConfidenceType, ViewState three-state, with type stubs for IDE autocompletion. Beyond basic drivers, the Apple ecosystem integration (FabricRS PR #218) adds power-shaped sync (battery-aware scheduling), delta sync for BLE-constrained devices (Watch, AirPods), and spatial-temporal scoping (Vision Pro room-aware). No competitor offers this depth of Apple integration. Gap: JavaScript/Node.js driver and Lens API exposure in Python.",
       "evidence": [
         { "label": "Swift C-FFI Wrapper", "path": "wikai-core/bindings/swift/TrustDbNvm.swift" },
         { "label": "C Bridging Header", "path": "wikai-core/bindings/swift/TrustDbNvm.h" },
@@ -81,10 +81,10 @@
         { "label": "TEP Exchange Layer", "path": "wikai-core/crates/trustdb/src/exchange/" }
       ],
       "history": [
-        { "date": "2026-03-31", "value": "Swift C-FFI + iOS/watchOS", "note": "PR #148 (merged) — TrustDbNvm.swift, C bridging header, 5 Apple targets, SwiftUI demo, 4 FFI tests" },
+        { "date": "2026-03-31", "value": "Swift C-FFI + iOS/watchOS", "note": "FabricRS PR #148 (merged) — TrustDbNvm.swift, C bridging header, 5 Apple targets, SwiftUI demo, 4 FFI tests" },
         { "date": "2026-04-01", "value": "Python driver enhancement", "note": "Branch session/conn-pillar — BoundedFloat, ViewState, WatMetrics, entity CRUD, type stubs" },
-        { "date": "2026-04-01", "value": "Apple ecosystem deep integration", "note": "PR #218 — power-shaped sync, Watch/AirPods delta sync, Vision Pro spatial scoping" },
-        { "date": "2026-04-02", "value": "Python Lens API + TEP exchange types", "note": "PR #231 (merged) — LensQuery builder, ConfidenceEnvelope, SourceRef, TemporalProvenance, GovernanceState, type stubs" }
+        { "date": "2026-04-01", "value": "Apple ecosystem deep integration", "note": "FabricRS PR #218 — power-shaped sync, Watch/AirPods delta sync, Vision Pro spatial scoping" },
+        { "date": "2026-04-02", "value": "Python Lens API + TEP exchange types", "note": "FabricRS PR #231 (merged) — LensQuery builder, ConfidenceEnvelope, SourceRef, TemporalProvenance, GovernanceState, type stubs" }
       ],
       "roadmapTo9": {
         "currentScore": 7.0,
@@ -225,7 +225,7 @@
           "value": "Fabric Flight QUIC + Swift C-FFI + Python PyO3 + JS gRPC",
           "target": "Remote protocol + in-process drivers",
           "met": true,
-          "source": "Four access paths: (1) Fabric Flight QUIC transport (rpc_surface.rs, 11 RPCs), (2) Swift C-FFI for Apple in-process (merged PR #148, 5 Apple targets), (3) Python PyO3 for data science in-process (merged PR #231), (4) JS/TS gRPC client (@trustdb/client). Arrow Flight SQL feature-gated.",
+          "source": "Four access paths: (1) Fabric Flight QUIC transport (rpc_surface.rs, 11 RPCs), (2) Swift C-FFI for Apple in-process (merged FabricRS PR #148, 5 Apple targets), (3) Python PyO3 for data science in-process (merged FabricRS PR #231), (4) JS/TS gRPC client (@trustdb/client). Arrow Flight SQL feature-gated.",
           "comparisons": [
             { "system": "PostgreSQL", "value": "libpq + 30+ drivers via wire protocol" },
             { "system": "Neo4j", "value": "HTTP + Bolt, 8 official drivers" },
@@ -261,7 +261,7 @@
           "date": "2026-04-02",
           "from": 7.0,
           "to": 8.0,
-          "reason": "Arrow Flight SQL adapter (feature-gated). Entities/sections/edges as Arrow RecordBatch with confidence as native columns. PR #231 merged."
+          "reason": "Arrow Flight SQL adapter (feature-gated). Entities/sections/edges as Arrow RecordBatch with confidence as native columns. FabricRS PR #231 merged."
         },
         {
           "date": "2026-04-03",

@@ -329,9 +329,9 @@
           "met": true,
           "comparisons": [
             {
-              "system": "Graviton ARM64 Fargate",
-              "value": "20% cost + 30% perf",
-              "source": "ARM64 migration from x86_64 Fargate (deployed)"
+              "system": "Graviton ARM64 Fargate (planned)",
+              "value": "20% cost + 30% perf (target)",
+              "source": "ARM64 migration target; current Fargate deployment is x86_64. No aarch64/arm64/graviton workflow exists yet."
             },
             {
               "system": "Windows NUMA optimization",
@@ -341,7 +341,7 @@
           ]
         }
       ],
-      "narrative": "TCO is exceptional when compared to the multi-system stack TrustDB replaces. A PostGIS + Neo4j + Elasticsearch stack costs $1–10K/month in cloud hosting plus licensing, plus 3x the operational burden (monitoring, backups, schema migrations, version upgrades). TrustDB replaces all three with zero licensing, zero server infrastructure, and zero serialization overhead. The catch: it requires Rust expertise, which is a higher-cost engineering resource than SQL/Cypher developers. Cloud infrastructure costs are further reduced by the Graviton ARM64 Fargate migration (20% cost reduction with 30% performance improvement), and Windows desktop deployments benefit from VirtualLock page pinning and NUMA-aware allocation via VirtualAllocExNuma.",
+      "narrative": "TCO is exceptional when compared to the multi-system stack TrustDB replaces. A PostGIS + Neo4j + Elasticsearch stack costs $1–10K/month in cloud hosting plus licensing, plus 3x the operational burden (monitoring, backups, schema migrations, version upgrades). TrustDB replaces all three with zero licensing, zero server infrastructure, and zero serialization overhead. The catch: it requires Rust expertise, which is a higher-cost engineering resource than SQL/Cypher developers. Cloud infrastructure costs are projected to drop further via the planned Graviton ARM64 Fargate migration (target: 20% cost reduction with 30% performance improvement; currently x86_64), and Windows desktop deployments benefit from VirtualLock page pinning and NUMA-aware allocation via VirtualAllocExNuma (planned).",
       "evidence": [
         {
           "label": "DynamicValue Codec Benchmarks",

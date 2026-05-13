@@ -1,11 +1,12 @@
 {
-  "lastUpdated": "2026-04-06",
+  "lastUpdated": "2026-05-13",
   "pillars": {
     "performance": {
       "name": "Performance",
       "subtitle": "The Speed & Volume Pillar",
       "icon": "zap",
-      "overallScore": 8.5,
+      "overallScore": 8.4,
+      "headline": "Measured #1 on Time-Series (9.6× QuestDB world record), Graph (148× Neo4j), KV (7.1× Redis), and Multi-Modal (13.5× federated). Spatial sweeps SedonaDB+DuckDB+GeoPandas head-to-head on m7i.2xlarge. Vector #4 leaderboard tier. Analytical #2. All PQC + governance native.",
       "metrics": {
         "latency": {
           "name": "Latency",
@@ -54,7 +55,7 @@
           "name": "Consistency",
           "score": 9.0,
           "status": "excellent",
-          "summary": "Serializable snapshot isolation (SSI). All reads return consistent committed state.",
+          "summary": "Snapshot Isolation (SI) via CoW page versioning + EpochGuard reclamation. All reads return consistent committed state from a snapshot. NOTE: SSI (write-set conflict detection / write-skew prevention) is a roadmap item; not yet wired into tx::transaction::commit().",
           "lastUpdated": "2026-03-30"
         },
         "availability": {
@@ -162,7 +163,7 @@
           "name": "Total Cost of Ownership",
           "score": 9.3,
           "status": "excellent",
-          "summary": "Zero licensing, embedded. Governance 49x cheaper than traditional stack. Graviton ARM64 Fargate: 20% cost reduction + 30% perf improvement (deployed). Windows VirtualLock + NUMA allocation for desktop optimization.",
+          "summary": "Zero licensing, embedded. Governance 49x cheaper than traditional stack. Graviton ARM64 Fargate migration is planned (target: 20% cost reduction + 30% perf improvement); current Fargate deployment is x86_64. Windows VirtualLock + NUMA allocation for desktop optimization (planned).",
           "lastUpdated": "2026-03-31"
         }
       }

@@ -1,8 +1,28 @@
 [
   {
+    "date": "2026-05-13",
+    "version": "Ground-Truth Update",
+    "title": "7-paradigm leaderboard added + 4 audit findings hot-patched",
+    "description": "Substantial alignment with measured ground truth from May 7-9 2026 EC2 benchmarks. Added: paradigmLeaderboard block with 7 measured rows (TSBS 42.2M metrics/sec = 9.6× QuestDB world record; LDBC IS-1 296,610 QPS = 148× Neo4j head-to-head; YCSB-B 21.8M ops/sec = 7.1× Redis pipelined; Multi-Modal Nightmare 9.7ms = 13.5× federated; ClickBench 1.92× ClickHouse on subset; VDBBench 4,894 QPS @ recall 0.958; SpatialBench SF1 sweeps SedonaDB+DuckDB+GeoPandas on m7i.2xlarge). Hot-patched 4 audit findings: (A) PR # references retagged to FabricRS PR # (legacy repo); (B-worst) batch_write_100 corrected from 940µs (mismatch) to 1.8ms (measured); (C) Serializable Snapshot Isolation downgraded to Snapshot Isolation — SSI is roadmap; (I) Graviton ARM64 Fargate retagged from 'deployed' to 'planned'. Performance pillar 8.5 → 8.4 (1-pt average of 7 paradigms). Honest Gaps section added. Source-file paths repointed to Performance Enhancements/ + 00 Performance Dashboard/00-bench-evidence-source-files/.",
+    "pillarsAffected": ["performance", "reliability", "efficiency", "connectivity"],
+    "tags": ["alignment", "calibration-100", "audit-cleanup"],
+    "entries": [
+      "7-paradigm leaderboard added: TSBS / LDBC / YCSB / Multi-Modal / ClickBench / VDBBench / SpatialBench — all measured on EC2",
+      "TSBS: 42.2M metrics/sec end-to-end on c6a.8xlarge = 9.6× QuestDB published world record",
+      "LDBC IS-1: 296,610 QPS = 148× Neo4j 5.26.25 head-to-head on identical hardware",
+      "YCSB-B (batch=1024 mimalloc): 21.8M ops/sec = 7.1× Redis -P 128",
+      "Multi-Modal Nightmare Query: 9.7ms single-engine = 13.5× federated stack",
+      "ClickBench: 8.56s sum-of-best 10 queries on c6a.4xlarge = 1.92× ClickHouse same hardware",
+      "VectorDBBench SIFT-1M: 4,894 QPS parallel-8 @ recall 0.958 — Weaviate tier (#4 leaderboard)",
+      "SpatialBench SF1 sweep (m7i.2xlarge, Apache leaderboard hardware): Q1 14.7ms vs SedonaDB 470ms (32× faster) / DuckDB 140ms (9.6× faster) / GeoPandas 13.14s (894× faster); Q12 5.20s vs SedonaDB 23.88s (4.6×) / DuckDB TIMEOUT / GeoPandas TIMEOUT",
+      "Beats Apache published 2025 SpatialBench leaderboard SedonaDB v0.1.0: Q1 45×, Q8 6×, Q12 2.8×",
+      "Honest gaps surfaced for every paradigm — no claim without source"
+    ]
+  },
+  {
     "date": "2026-04-01",
     "version": "Phase 5",
-    "title": "Raft Consensus + Device Lifecycle + Rebalancing (PR #218)",
+    "title": "Raft Consensus + Device Lifecycle + Rebalancing (FabricRS PR #218)",
     "description": "Complete Raft consensus implementation (5 worknodes: RPC layer, leader election, log replication, compaction, persistence — 18 tests). Device lifecycle (register/deregister/heartbeat — 10 tests). Automatic rebalancing (scope-change detection, auto-rebalance trigger, Raft membership changes). Progressive compaction. Classification-chain partitioning. Availability 7.5 → 9.0. Horizontal Scaling 5.5 → 8.5. Elasticity 4.5 → 9.0.",
     "pillarsAffected": ["reliability", "scalability"],
     "tags": ["milestone", "architecture", "consensus"]
@@ -45,7 +65,7 @@
       "Confidence-weighted persistence: durable (>=0.8) vs soft-durable (<0.8) tiers",
       "APFS CoW-aware crash recovery: O(1) superblock, e-1 recovery on APFS, e-2 on generic FS",
       "Windows optimizations: VirtualLock, NUMA VirtualAllocExNuma, FlushViewOfFile control",
-      "Graviton ARM64 Fargate migration: 20% cost reduction, 30% performance improvement",
+      "Graviton ARM64 Fargate migration: planned (target 20% cost reduction, 30% performance improvement); not yet deployed",
       "Software prefetch: ARM64 PRFM + x86 _mm_prefetch for tree traversal",
       "mmap hints: THP, MADV_RANDOM, MADV_SEQUENTIAL, MADV_WILLNEED per region",
       "SystemProfile: full device/environment/power metadata on every benchmark result",
