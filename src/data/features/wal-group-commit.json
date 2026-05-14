@@ -3,11 +3,11 @@
   "name": "WAL with Group Commit",
   "category": "Storage Engine",
   "status": "implemented",
-  "overview": "TrustDB uses a Write-Ahead Log with batched group commits for durability. Multiple concurrent writes are coalesced into a single fsync, achieving 8-10x throughput improvement over per-write fsync. The WAL uses FNV32 checksums for corruption detection and follows a Copy-on-Write design rather than the traditional ARIES recovery protocol.",
+  "overview": "TrustDB uses a Write-Ahead Log with batched group commits for durability. Multiple concurrent writes are coalesced into a single fsync, achieving 8-10× throughput improvement over per-write fsync. The WAL uses HMAC-SHA384 chained integrity (FabricRS PR #247: each tag covers prev_tag + WalProvenance + data; tamper-detection per NIST AU-10) and follows a Copy-on-Write design rather than the traditional ARIES recovery protocol. NOTE 2026-05-13: prior text said 'FNV32 checksums' — that was pre-PR-#247 stale; HMAC-SHA384 is the canonical integrity primitive.",
   "howItWorks": [
     { "step": "1", "title": "Write Buffering", "description": "Incoming writes are appended to an in-memory WAL buffer. Each write gets a monotonic Log Sequence Number (LSN). The buffer accumulates writes until a commit trigger fires." },
     { "step": "2", "title": "Group Commit Trigger", "description": "A commit is triggered by either: (a) buffer size exceeding threshold, (b) a configurable time window expiring, or (c) an explicit sync request. All buffered writes are flushed as a single batch with one fsync." },
-    { "step": "3", "title": "FNV32 Checksumming", "description": "Each WAL record is checksummed with FNV32 (fast, non-cryptographic). On recovery, corrupted records are detected and the WAL is truncated to the last valid record. FNV32 was chosen over CRC32 for speed." },
+    { "step": "3", "title": "HMAC-SHA384 Chained Integrity", "description": "Each WAL record gets format [0xCB magic][provenance:26B][record:N][hmac_tag:48B]. Per-record WalProvenance (agent_id, clearance, connectivity, timestamp). Each HMAC tag = HMAC(key, prev_tag || provenance || data) — tampering any record invalidates all subsequent. RDKC-derived or static key modes. ACVP test vectors (RFC 4231). Provides tamper-proof non-repudiation per NIST AU-10. FabricRS PR #247." },
     { "step": "4", "title": "CoW Recovery", "description": "Unlike ARIES (which uses undo/redo logs), TrustDB's CoW design means old pages are never overwritten. Recovery simply discards uncommitted WAL entries and reconstructs the tree from the last committed root. No undo pass is needed." }
   ],
   "benchmarks": [
@@ -49,7 +49,7 @@
   "evidence": [
     { "label": "WAL implementation", "path": "trustdb/src/wal/mod.rs" },
     { "label": "Group commit logic", "path": "trustdb/src/wal/group_commit.rs" },
-    { "label": "FNV32 checksum", "path": "trustdb/src/wal/checksum.rs" },
+    { "label": "HMAC-SHA384 chain (FabricRS PR #247)", "path": "trustdb/src/wal/hmac.rs" },
     { "label": "CoW recovery", "path": "trustdb/src/recovery/cow_recovery.rs" }
   ],
   "relatedFeatures": ["b-epsilon-tree", "cow-mvcc"],

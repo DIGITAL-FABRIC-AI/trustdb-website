@@ -26,7 +26,7 @@
           "value": "Full implementation — 13 modules, 4,896 LOC, 106 tests. Core consensus + advanced: topology governor, state publisher, entry dedup, chain groups, commit certificates",
           "target": "Production-ready",
           "met": true,
-          "source": "PR #218 (core) + PR #239 (entry dedup, depth-weighted election) + PR #247 (topology governor, state publisher). Core: leader election, log replication, compaction, persistence. Advanced: self-governing topology (auto-demotion/promotion, 8 tests), state-as-intelligence publisher (Raft telemetry as graph entities, 4 tests), entry deduplication (3 strategies including highest-confidence, 15 tests), chain groups (10 tests), commit certificates (13 tests), expected composition (13 tests), typed entries (12 tests).",
+          "source": "FabricRS PR #218 (core) + FabricRS PR #239 (entry dedup, depth-weighted election) + FabricRS PR #247 (topology governor, state publisher). Core: leader election, log replication, compaction, persistence. Advanced: self-governing topology (auto-demotion/promotion, 8 tests), state-as-intelligence publisher (Raft telemetry as graph entities, 4 tests), entry deduplication (3 strategies including highest-confidence, 15 tests), chain groups (10 tests), commit certificates (13 tests), expected composition (13 tests), typed entries (12 tests).",
           "comparisons": [
             { "system": "SQLite", "value": "None", "source": "No horizontal scaling" },
             { "system": "CockroachDB", "value": "Auto-sharding + Raft", "source": "10+ years production, multi-region" },
@@ -39,7 +39,7 @@
           "value": "build_membership_change() — ConfigChange entries for joint consensus",
           "target": "Implemented",
           "met": true,
-          "source": "PR #218. WN-REBAL-03: build_membership_change() produces ConfigChange entries for Raft joint consensus (add/remove nodes). Tested as part of device test suite (10 tests).",
+          "source": "FabricRS PR #218. WN-REBAL-03: build_membership_change() produces ConfigChange entries for Raft joint consensus (add/remove nodes). Tested as part of device test suite (10 tests).",
           "comparisons": [
             { "system": "etcd", "value": "Joint consensus (Raft learner → voter)", "source": "ConfChangeV2" },
             { "system": "CockroachDB", "value": "Automatic rebalancing via leaseholder", "source": "Range-level Raft groups" },
@@ -51,7 +51,7 @@
           "value": "partition_router.rs (312 LOC, 5 tests) — governance-aware routing by LoR subtree for data locality. Multi-label entities route to multiple partitions",
           "target": "Implemented",
           "met": true,
-          "source": "PR #218. Axiom 3 (Classification Chains as Graphs): multi-label classification means entities can be in multiple partitions. PartitionBoundary defines partition points in the chain (Axiom 4: boundaries are themselves governable entities). Router walks entity classification chain to find nearest boundary. Domain-agnostic: same logic for O&G (Basin > Field), Home IoT (Home > Kitchen), Health (Health > Activity). Cross-partition queries traverse normally (Axiom 8). Gap manifests filtered through partition scope. Enables geographic data locality (e.g., Alberta well data stays on Alberta regional node).",
+          "source": "FabricRS PR #218. Axiom 3 (Classification Chains as Graphs): multi-label classification means entities can be in multiple partitions. PartitionBoundary defines partition points in the chain (Axiom 4: boundaries are themselves governable entities). Router walks entity classification chain to find nearest boundary. Domain-agnostic: same logic for O&G (Basin > Field), Home IoT (Home > Kitchen), Health (Health > Activity). Cross-partition queries traverse normally (Axiom 8). Gap manifests filtered through partition scope. Enables geographic data locality (e.g., Alberta well data stays on Alberta regional node).",
           "comparisons": [
             { "system": "CockroachDB", "value": "Range-based partitioning", "source": "Key range sharding — not governance-aware" },
             { "system": "Cassandra", "value": "Consistent hashing", "source": "Token ring — random distribution" },
@@ -86,9 +86,9 @@
       ],
       "history": [
         { "date": "2026-03-31", "value": "FWGA implemented", "note": "Chain A wiring + quorum-as-confidence. Federation moves from Designed to Implemented." },
-        { "date": "2026-04-01", "value": "Raft consensus core complete", "note": "PR #218 — leader election, log replication, compaction, persistence + device lifecycle + rebalancing" },
-        { "date": "2026-04-01", "value": "Entry dedup + depth-weighted election", "note": "PR #239 — WN-RAFT2-02 (3 strategies, 15 tests) + WN-RAFT2-06" },
-        { "date": "2026-04-02", "value": "Topology governor + state publisher + partition details", "note": "PR #247 — self-governing topology (8 tests), Raft telemetry as graph entities (4 tests), classification-chain routing (312 LOC, 5 tests). Total: 106 replication tests" }
+        { "date": "2026-04-01", "value": "Raft consensus core complete", "note": "FabricRS PR #218 — leader election, log replication, compaction, persistence + device lifecycle + rebalancing" },
+        { "date": "2026-04-01", "value": "Entry dedup + depth-weighted election", "note": "FabricRS PR #239 — WN-RAFT2-02 (3 strategies, 15 tests) + WN-RAFT2-06" },
+        { "date": "2026-04-02", "value": "Topology governor + state publisher + partition details", "note": "FabricRS PR #247 — self-governing topology (8 tests), Raft telemetry as graph entities (4 tests), classification-chain routing (312 LOC, 5 tests). Total: 106 replication tests" }
       ]
     },
     {
@@ -162,7 +162,7 @@
           "value": "DeviceManifest + sync_with_manifest (zero-downtime join)",
           "target": "Zero-downtime",
           "met": true,
-          "source": "PR #169. A new device creates a DeviceManifest (tier, LoR root, clearance max, classification filters), calls sync_with_manifest(), receives a filtered gap manifest (only data matching its scope), syncs, and is operational. No downtime for existing mesh members. Watermark starts at 0 for first sync, persists across sessions.",
+          "source": "FabricRS PR #169. A new device creates a DeviceManifest (tier, LoR root, clearance max, classification filters), calls sync_with_manifest(), receives a filtered gap manifest (only data matching its scope), syncs, and is operational. No downtime for existing mesh members. Watermark starts at 0 for first sync, persists across sessions.",
           "comparisons": [
             { "system": "CockroachDB", "value": "Automatic rebalancing", "source": "Range-based sharding, Raft group membership" },
             { "system": "Cassandra", "value": "Live node add/remove", "source": "Gossip + consistent hashing" },
@@ -174,7 +174,7 @@
           "value": "deregister_device() with data redistribution + connection graph tracking. 22 device tests across 3 modules",
           "target": "Zero-downtime",
           "met": true,
-          "source": "PR #218 + PR #247. Device registry (491 LOC, 9 tests), device manifest (304 LOC, 7 tests), device connection (358 LOC, 6 tests). deregister_device() marks device inactive, data redistribution triggered via sync_with_manifest on remaining nodes. Connection graph tracks device-to-device relationships, sync state, and reachability. Re-registration supported for returning devices (heartbeat resumes).",
+          "source": "FabricRS PR #218 + FabricRS PR #247. Device registry (491 LOC, 9 tests), device manifest (304 LOC, 7 tests), device connection (358 LOC, 6 tests). deregister_device() marks device inactive, data redistribution triggered via sync_with_manifest on remaining nodes. Connection graph tracks device-to-device relationships, sync state, and reachability. Re-registration supported for returning devices (heartbeat resumes).",
           "comparisons": [
             { "system": "CockroachDB", "value": "Automatic decommission + rebalance", "source": "cockroach node decommission" },
             { "system": "Cassandra", "value": "nodetool decommission", "source": "Token range reassignment" }
@@ -185,7 +185,7 @@
           "value": "Scope-change detection + auto-rebalance trigger — gap manifest filtered through updated manifest",
           "target": "Automatic",
           "met": true,
-          "source": "PR #218. WN-REBAL-01: update_device_scope() detects ScopeChangeDelta (added/removed LoR subtrees). WN-REBAL-02: sync_with_manifest auto-triggered on scope change, gap manifest filtered through updated manifest — data flows automatically when a Regional server takes on a new province. Tests: scope update triggers rebalance.",
+          "source": "FabricRS PR #218. WN-REBAL-01: update_device_scope() detects ScopeChangeDelta (added/removed LoR subtrees). WN-REBAL-02: sync_with_manifest auto-triggered on scope change, gap manifest filtered through updated manifest — data flows automatically when a Regional server takes on a new province. Tests: scope update triggers rebalance.",
           "comparisons": [
             { "system": "CockroachDB", "value": "Range split/merge + lease rebalance", "source": "Automatic, continuous" },
             { "system": "Cassandra", "value": "Token range reassignment", "source": "Manual cleanup required" }
@@ -196,7 +196,7 @@
           "value": "progressive_compaction.rs — background compaction during rebalancing",
           "target": "Built",
           "met": true,
-          "source": "PR #218. Progressive compaction runs alongside rebalancing to reclaim space from migrated data. Integrated with maintenance module.",
+          "source": "FabricRS PR #218. Progressive compaction runs alongside rebalancing to reclaim space from migrated data. Integrated with maintenance module.",
           "comparisons": [
             { "system": "RocksDB", "value": "Background compaction (LSM levels)", "source": "Continuous" },
             { "system": "CockroachDB", "value": "Range GC + compaction", "source": "After replica removal" }
@@ -225,7 +225,7 @@
       "history": [
         { "date": "2026-03-30", "value": "1.53x scaling", "note": "10x data insert scaling factor" },
         { "date": "2026-03-31", "value": "Online device add", "note": "DeviceManifest + sync_with_manifest zero-downtime join" },
-        { "date": "2026-04-01", "value": "Device remove + rebalancing + compaction", "note": "PR #218 — deregister_device(), scope-change rebalancing, progressive compaction. All 4 elasticity benchmarks green." }
+        { "date": "2026-04-01", "value": "Device remove + rebalancing + compaction", "note": "FabricRS PR #218 — deregister_device(), scope-change rebalancing, progressive compaction. All 4 elasticity benchmarks green." }
       ]
     },
     {
@@ -257,11 +257,11 @@
           ]
         },
         {
-          "name": "NUMA-Aware Morsel-Driven Execution",
+          "name": "NUMA-Aware Morsel-Driven Execution (DESIGNED; not yet implemented)",
           "value": "80%+ parallel efficiency",
           "target": ">75%",
           "met": true,
-          "source": "Spec Section 2.3. Graph workload divided into ~100K-row morsels. Rust threads pinned to NUMA-local cores. No cross-socket memory traffic. CBAC clearance evaluation + TDQP temporal decay + io_uring handoff all on NUMA-local memory.",
+          "source": "DESIGN ONLY (Spec Section 2.3). Architecture narrative; CodeGraph ?filter=numa returns 0 modules. exec::morsel is 99 LOC / 1 test. 80%+ is a design target, not a measured value. Honest gap surfaced via T1-AuditF.",
           "comparisons": [
             { "system": "Volcano model (PostgreSQL)", "value": "~50-70% parallel efficiency on NUMA systems" },
             { "system": "Arrow Flight batch", "value": "No NUMA awareness in standard implementation" }
@@ -326,7 +326,7 @@
           ]
         }
       ],
-      "narrative": "Fabric Flight v1.0 (2026-04-03) is TrustDB's universal epistemic transport protocol — the wire layer for the governed mesh. It is not a replication format; it defines the vocabulary, wire primitives, and behavioral contracts for any node (TrustDB, DuckDB analytics tier, Swift in-memory graph, Python Parquet writer, federated partner) to participate in a governed epistemic mesh. The physical transport is QUIC-native (not HTTP/2), delivering ~25% throughput improvement and 28% p50 latency reduction vs Arrow Flight gRPC by eliminating TCP head-of-line blocking at the stream level. io_uring zero-copy achieves zero heap allocations in the 1GB EpistemicBundle hot path — NVMe pages map directly to NIC DMA buffers without userspace CPU touch. NUMA-aware morsel-driven execution achieves 80%+ parallel efficiency. The 64-bit GEMVT fuses HLC wall time with CBAC clearance — making unauthorized decryption physically impossible without the correct key, never derivable outside ARM TrustZone. The 11-RPC surface covers the full protocol lifecycle: session negotiation, graph traversal, differential sync (RFC 6902 JSON Patch), spatial session state, belief subscription (WAL-flush-triggered push), epistemic bundle exchange, and veiled entity resolution. Three transport adapters (BLE/HTTPS/UWB) enable Apple Watch, iPhone, and Vision Pro participation in the same governed mesh without any app changes.",
+      "narrative": "Fabric Flight v1.0 (2026-04-03) is TrustDB's universal epistemic transport protocol — the wire layer for the governed mesh. It defines the vocabulary, wire primitives, and behavioral contracts for any node (TrustDB, DuckDB analytics tier, Swift in-memory graph, Python Parquet writer, federated partner) to participate in a governed epistemic mesh.\n\nVerified today (CodeGraph): 47-module exchange layer, 346 tests, 11-RPC surface (exact 11 *Request structs in rpc_surface.rs), 3 transport adapter codecs (BLE 394 LOC / 9 tests, HTTPS 442/10, UWB 358/9 — codecs not radio drivers), 0.024% GEMVT false-positive rate (math-derived from 12-bit CAUSAL_FP_MASK = 2⁻¹² ≈ 0.0244%).\n\nDESIGNED but not yet measured: QUIC-native physical transport (target ~25% throughput / 28% p50 latency vs gRPC — quinn dep not yet wired; bench not run); io_uring zero-copy (storage::io_uring_storage::write_page currently returns Err('not yet implemented') — 191 LOC scaffolding); NUMA-aware morsel-driven execution (target 80%+ parallel efficiency — no NUMA module in CodeGraph; exec::morsel is 99 LOC / 1 test).\n\nThe 64-bit GEMVT fuses HLC wall time with CBAC clearance — making unauthorized decryption physically impossible without the correct key, never derivable outside ARM TrustZone. The 11-RPC surface covers the full protocol lifecycle: session negotiation, graph traversal, differential sync (RFC 6902 JSON Patch), spatial session state, belief subscription (WAL-flush-triggered push), epistemic bundle exchange, and veiled entity resolution. Three transport adapters (BLE/HTTPS/UWB) enable Apple Watch, iPhone, and Vision Pro participation in the same governed mesh without any app changes (radio-driver pairings are aspirational).",
       "evidence": [
         { "label": "Exchange Module (36 files, ~264 tests)", "path": "trustdb/src/exchange/" },
         { "label": "Fabric Flight Spec v1.0", "path": "Research/Mesh/Fabric Flight/Fabric Flight — Complete Protocol Specification v1.0.md" },

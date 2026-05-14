@@ -75,7 +75,7 @@
       ],
       "narrative": "Access control is TrustDB's strongest differentiator, backed by 99 CBAC unit tests, 92 RDKC tests, 21 EACB tests, 20 CBAC-RDKC integration tests, and 352 adversarial gym test functions across 28 files. CBAC implements a 6-state governance circuit breaker (Open, Restricted, Suspended, Quarantined, Sealed, EngagementAuthorized) with compare-and-swap semantics. REWG derives entitlements from graph position via bitwise AND \u2014 no ACL tables, no policy engine. EACB provides FROST threshold signatures for LAWS 3000.09 human-in-the-loop authorization. Access control is cryptographic: RDKC derives unique per-page keys from governance state. A CUI-clearance entity cannot derive the key for a SECRET page \u2014 verified by gym_g01 clearance boundary battery and gym_p01 pre-redaction leakage proof. Gap to 9.5: ML-DSA-87 post-quantum signatures (CNSA 2.0), FIPS ACVP formal validation, and timing side-channel proof on target hardware.",
       "evidence": [
-        { "label": "CBAC Module (99 unit tests)", "path": "trustdb/src/cbac/" },
+        { "label": "CBAC Module (141 source tests; 206 total with test files)", "path": "trustdb/src/cbac/" },
         { "label": "REWG Module (27 tests)", "path": "trustdb/src/rewg/ + store/rewg_ops.rs" },
         { "label": "EACB Module (21 tests)", "path": "trustdb/src/eacb/" },
         { "label": "RDKC Module (92 tests)", "path": "trustdb/src/rdkc/" },
@@ -211,10 +211,10 @@
         },
         {
           "name": "WAL Tamper Protection",
-          "value": "HMAC-SHA384 chained format (PR #247) \u2014 33 WAL tests total. Per-record WalProvenance. ACVP test vectors (RFC 4231)",
+          "value": "HMAC-SHA384 chained format (FabricRS PR #247) \u2014 33 WAL tests total. Per-record WalProvenance. ACVP test vectors (RFC 4231)",
           "target": "Chained HMAC with per-record provenance",
           "met": true,
-          "source": "PR #247. Chained HMAC: each tag = HMAC(key, prev_tag || provenance || data). WalProvenance: 26 bytes per record. CNSA 2.0 compliant.",
+          "source": "FabricRS PR #247. Chained HMAC: each tag = HMAC(key, prev_tag || provenance || data). WalProvenance: 26 bytes per record. CNSA 2.0 compliant.",
           "comparisons": [
             { "system": "PostgreSQL", "value": "CRC-32C (non-cryptographic)" },
             { "system": "RocksDB", "value": "CRC-32C (non-cryptographic)" },
@@ -236,7 +236,7 @@
       "evidence": [
         { "label": "RDKC (92 tests)", "path": "trustdb/src/rdkc/" },
         { "label": "CAM (130 tests)", "path": "trustdb/src/cam/" },
-        { "label": "CBAC (99 tests)", "path": "trustdb/src/cbac/" },
+        { "label": "CBAC (141 tests)", "path": "trustdb/src/cbac/" },
         { "label": "EACB (21 tests)", "path": "trustdb/src/eacb/" },
         { "label": "TEE (26 tests)", "path": "trustdb/src/tee/" },
         { "label": "ZK (11 tests)", "path": "trustdb/src/zk/" },
@@ -309,10 +309,10 @@
         },
         {
           "name": "WAL HMAC Chain (Tamper-Proof Audit)",
-          "value": "HMAC-SHA384 chained format (PR #247) \u2014 33 WAL tests total. Per-record WalProvenance (agent_id, clearance, connectivity, timestamp). ACVP vectors (RFC 4231)",
+          "value": "HMAC-SHA384 chained format (FabricRS PR #247) \u2014 33 WAL tests total. Per-record WalProvenance (agent_id, clearance, connectivity, timestamp). ACVP vectors (RFC 4231)",
           "target": "Chained HMAC with per-record provenance",
           "met": true,
-          "source": "PR #247. Chained HMAC: each tag = HMAC(key, prev_tag || provenance || data). WalProvenance: 26 bytes per record (NIST AU-10 non-repudiation). Static or RDKC-derived key modes. CNSA 2.0 compliant.",
+          "source": "FabricRS PR #247. Chained HMAC: each tag = HMAC(key, prev_tag || provenance || data). WalProvenance: 26 bytes per record (NIST AU-10 non-repudiation). Static or RDKC-derived key modes. CNSA 2.0 compliant.",
           "comparisons": [
             { "system": "PostgreSQL", "value": "CRC-32C (non-cryptographic)" },
             { "system": "RocksDB", "value": "CRC-32C (non-cryptographic)" },
@@ -351,11 +351,11 @@
           ]
         }
       ],
-      "narrative": "Auditing is the most complete pillar at 9.5. ProvenanceChain tracks who/what/when on every entity at zero overhead. TCI discovers implicit relationships at flush time. CBAC audit trail records every state change with CAS-versioned immutability. WAL HMAC-SHA384 chained format (PR #247) provides tamper-proof audit with per-record provenance (agent_id, clearance, connectivity, timestamp) \u2014 26 bytes overhead, 33 tests, ACVP vectors for NIST validation prep. Compliance export (PR #250) covers SOX 404, HIPAA, NIST AU controls. SIEM integration outputs CEF for Splunk/ArcSight and STIX 2.1 for Sentinel/Elastic. GYM-R01 SSP Evidence maps 28 gym files to 9 NIST SP 800-53 control families. The only gap to 10.0: FIPS 140-3 lab certification of the HMAC implementation (process, not engineering).",
+      "narrative": "Auditing is the most complete pillar at 9.5. ProvenanceChain tracks who/what/when on every entity at zero overhead. TCI discovers implicit relationships at flush time. CBAC audit trail records every state change with CAS-versioned immutability. WAL HMAC-SHA384 chained format (FabricRS PR #247) provides tamper-proof audit with per-record provenance (agent_id, clearance, connectivity, timestamp) \u2014 26 bytes overhead, 33 tests, ACVP vectors for NIST validation prep. Compliance export (PR #250) covers SOX 404, HIPAA, NIST AU controls. SIEM integration outputs CEF for Splunk/ArcSight and STIX 2.1 for Sentinel/Elastic. GYM-R01 SSP Evidence maps 28 gym files to 9 NIST SP 800-53 control families. The only gap to 10.0: FIPS 140-3 lab certification of the HMAC implementation (process, not engineering).",
       "evidence": [
         { "label": "Provenance Module", "path": "trustdb/src/primitives/provenance.rs" },
         { "label": "TCI Module", "path": "trustdb/src/tci/" },
-        { "label": "CBAC Audit (99 tests)", "path": "trustdb/src/cbac/audit.rs" },
+        { "label": "CBAC Audit (141 tests)", "path": "trustdb/src/cbac/audit.rs" },
         { "label": "WAL HMAC Chain (17 tests)", "path": "trustdb/src/wal/wal.rs" },
         { "label": "Compliance Export (PR #250)", "path": "trustdb/src/store/compliance_export.rs" },
         { "label": "SIEM Integration (PR #250)", "path": "trustdb/src/store/siem_export.rs" },
@@ -363,7 +363,7 @@
         { "label": "Gym: Adversarial (62 tests)", "path": "trustdb/tests/gym_a01..a03 + gym_g02" }
       ],
       "history": [
-        { "date": "2026-04-06", "value": "9.5", "note": "Updated test counts. WAL HMAC chain (PR #247), compliance export + SIEM (PR #250), GYM-R01 SSP evidence all on main." }
+        { "date": "2026-04-06", "value": "9.5", "note": "Updated test counts. WAL HMAC chain (FabricRS PR #247), compliance export + SIEM (PR #250), GYM-R01 SSP evidence all on main." }
       ]
     }
   ]

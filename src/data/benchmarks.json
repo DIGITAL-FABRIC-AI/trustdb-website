@@ -135,7 +135,7 @@
       "location": "trustdb/tests/gym_*.rs (168 tests across 15 files)",
       "lastRun": "2026-04-03",
       "status": "active",
-      "note": "168 adversarial tests as of 2026-04-03. Covers: clearance boundary, CBAC adversarial (116 tests), RDKC correctness, nonce safety, structural expiry, WAL HMAC-SHA384 chained (33 tests), ComplianceReport/SIEM (42 tests). Full SecurityGYM crate (8 modules, WN-SGYM-000 through WN-SGYM-H01) planned for further expansion."
+      "note": "168 adversarial tests as of 2026-04-03. Covers: clearance boundary, CBAC adversarial (141 source tests; CodeGraph-canonical), RDKC correctness, nonce safety, structural expiry, WAL HMAC-SHA384 chained (33 tests), ComplianceReport/SIEM (42 tests). Full SecurityGYM crate (8 modules, WN-SGYM-000 through WN-SGYM-H01) planned for further expansion."
     },
     {
       "id": "multimodal",
@@ -298,7 +298,7 @@
             { "name": "Audit Overhead (ProvenanceChain)", "value": "Zero (inline)", "source": "criterion", "pillar": "security", "comparisons": [{"system": "pg_audit", "value": "5–15% overhead"}, {"system": "MongoDB audit", "value": "5–10% overhead"}], "verdict": "Provenance is part of the LeafEntry, not a separate log. Zero additional I/O." },
             { "name": "WAL HMAC-SHA384 Chain (FabricRS PR #247)", "value": "33 WAL tests passing", "source": "security-gym", "pillar": "security", "comparisons": [{"system": "pg_audit", "value": "Log-based, no chain"}, {"system": "MongoDB", "value": "No WAL tamper-detection"}], "verdict": "Each WAL record: [0xCB magic][provenance:26B][record:N][hmac_tag:48B]. Every tag covers prev_tag + WalProvenance (agent_id, clearance, connectivity, timestamp). Tamper-proof non-repudiation per NIST AU-10." },
             { "name": "ComplianceReport + SIEM Export (FabricRS PR #250)", "value": "42 tests passing", "source": "security-gym", "pillar": "security", "comparisons": [{"system": "pg_audit", "value": "Manual syslog export"}, {"system": "MongoDB Ops Manager", "value": "Enterprise tier only"}], "verdict": "7 control attestations (SOX 404, HIPAA 164.312(b)/(c)(1), NIST AU-2/3/10/12). CEF format for ArcSight/Splunk + STIX 2.1 for Sentinel/Elastic. 4 event types." },
-            { "name": "CBAC Tests", "value": "116 tests passing", "source": "security-gym", "pillar": "security", "comparisons": [{"system": "Prior baseline", "value": "43 tests (2026-03-30)"}], "verdict": "6-state governance circuit breaker + REWG graph-derived entitlements + EACB/FROST threshold signatures. CAS semantics for concurrent state transitions.", "history": [{"date": "2026-03-30", "value": "43 tests"}, {"date": "2026-04-03", "value": "116 tests"}] },
+            { "name": "CBAC Tests", "value": "141 source tests (CodeGraph-canonical 2026-05-13)", "source": "security-gym", "pillar": "security", "comparisons": [{"system": "Prior baseline", "value": "43 tests (2026-03-30)"}], "verdict": "6-state governance circuit breaker + REWG graph-derived entitlements + EACB threshold signatures. FROST DESIGNED but not implemented (only ThresholdVerifier trait + MockVerifier exist). CAS semantics for concurrent state transitions.", "history": [{"date": "2026-03-30", "value": "43 tests"}, {"date": "2026-04-03", "value": "116 tests (stale count)"}, {"date": "2026-05-13", "value": "141 source / 206 total (CodeGraph-canonical)"}] },
             { "name": "Adversarial Security Tests", "value": "168 tests passing", "source": "security-gym", "pillar": "security", "comparisons": [{"system": "Prior baseline", "value": "23 tests (2026-03-30)"}], "verdict": "168 adversarial test functions across 15 gym files. Covers: clearance boundary, CBAC adversarial, RDKC correctness, nonce safety, structural expiry, input independence, pre-redaction leakage, WAL tamper-proofing, compliance attestation.", "history": [{"date": "2026-03-30", "value": "23 tests"}, {"date": "2026-04-03", "value": "168 tests"}] }
           ]
         },
@@ -315,11 +315,11 @@
           "name": "Fabric Flight & Mesh",
           "icon": "radio",
           "benchmarks": [
-            { "name": "QUIC vs gRPC Throughput", "value": "~25% improvement", "source": "fabric-flight", "pillar": "scalability", "comparisons": [{"system": "Arrow Flight (gRPC/HTTP2)", "value": "Baseline"}, {"system": "TCP head-of-line blocking", "value": "All streams stall on 1 dropped packet"}], "verdict": "QUIC per-stream loss recovery: a dropped packet on Health stream cannot pause the Asset stream. 0-RTT connection resumption for known FabricSession instances." },
-            { "name": "QUIC vs gRPC p50 Latency", "value": "28% reduction", "source": "fabric-flight", "pillar": "scalability", "comparisons": [{"system": "gRPC/Protobuf", "value": "Serialization overhead on every message"}, {"system": "REST/JSON", "value": "Request/response; no streaming"}], "verdict": "Primarily from bypassing Protobuf serialization during bulk transfers via QUIC stream-native binary encoding." },
-            { "name": "io_uring Zero-Copy (Receive)", "value": "Zero heap allocs for 1 GB EpistemicBundle", "source": "fabric-flight", "pillar": "scalability", "comparisons": [{"system": "gRPC (Arrow Flight)", "value": "Protobuf parse + heap alloc per message"}, {"system": "TCP socket recv", "value": "Kernel→userspace copy + allocation"}], "verdict": "IORING_SETUP_SQPOLL + IORING_SETUP_IOPOLL: kernel writes QUIC data directly into pre-registered staging buffers. EntityFingerprint comparison and EpistemicState validation run in-place before any heap allocation." },
-            { "name": "io_uring Zero-Copy (Send)", "value": "Server CPU does not touch Hologram payload", "source": "fabric-flight", "pillar": "scalability", "comparisons": [{"system": "gRPC", "value": "CPU-mediated serialization per send"}, {"system": "sendfile()", "value": "Kernel copy, not zero-copy to NIC"}], "verdict": "IORING_OP_SEND_ZC: NVMe storage pages mapped directly to NIC DMA buffers. Hologram transmissions are completely CPU-free in userspace — server capacity scales independently of payload size." },
-            { "name": "NUMA Parallel Efficiency", "value": "80%+", "source": "fabric-flight", "pillar": "scalability", "comparisons": [{"system": "Volcano model (PostgreSQL)", "value": "50-70% on NUMA"}, {"system": "Arrow Flight batch", "value": "No NUMA awareness"}], "verdict": "~100K-row morsels, Rust threads pinned to NUMA-local cores. CBAC clearance + TDQP temporal decay + io_uring handoff all on NUMA-local memory. No cross-socket memory traffic." },
+            { "name": "QUIC vs gRPC Throughput (designed; not yet benched)", "value": "~25% estimated", "source": "fabric-flight", "pillar": "scalability", "met": false, "comparisons": [{"system": "Arrow Flight (gRPC/HTTP2)", "value": "Baseline"}, {"system": "TCP head-of-line blocking", "value": "All streams stall on 1 dropped packet"}], "verdict": "DESIGN-LEVEL ESTIMATE based on QUIC per-stream loss recovery + 0-RTT resumption protocol theory. No quinn dependency wired yet; head-to-head bench not run. Marked 'designed' until measured. Honest gap: T1-AuditG roadmap." },
+            { "name": "QUIC vs gRPC p50 Latency (designed; not yet benched)", "value": "28% estimated", "source": "fabric-flight", "pillar": "scalability", "met": false, "comparisons": [{"system": "gRPC/Protobuf", "value": "Serialization overhead on every message"}, {"system": "REST/JSON", "value": "Request/response; no streaming"}], "verdict": "DESIGN-LEVEL ESTIMATE from bypassing Protobuf serialization during bulk transfers via QUIC stream-native binary encoding. Honest gap: T1-AuditG roadmap." },
+            { "name": "io_uring Zero-Copy (Receive) — STUB (Phase 5b)", "value": "Implementation stub", "source": "fabric-flight", "pillar": "scalability", "met": false, "comparisons": [{"system": "gRPC (Arrow Flight)", "value": "Protobuf parse + heap alloc per message"}, {"system": "TCP socket recv", "value": "Kernel→userspace copy + allocation"}], "verdict": "DESIGNED. storage::io_uring_storage::write_page currently returns Err('not yet implemented'). 191 LOC scaffolding present, 0 tests. Honest gap: T1-AuditE roadmap." },
+            { "name": "io_uring Zero-Copy (Send) — STUB (Phase 5b)", "value": "Implementation stub", "source": "fabric-flight", "pillar": "scalability", "met": false, "comparisons": [{"system": "gRPC", "value": "CPU-mediated serialization per send"}, {"system": "sendfile()", "value": "Kernel copy, not zero-copy to NIC"}], "verdict": "DESIGNED. Honest gap: T1-AuditE roadmap." },
+            { "name": "NUMA Parallel Efficiency (designed; no NUMA module)", "value": "80%+ design target", "source": "fabric-flight", "pillar": "scalability", "met": false, "comparisons": [{"system": "Volcano model (PostgreSQL)", "value": "50-70% on NUMA"}, {"system": "Arrow Flight batch", "value": "No NUMA awareness"}], "verdict": "DESIGN TARGET. CodeGraph ?filter=numa returns 0 modules; exec::morsel is 99 LOC / 1 test. Architecture narrative; no implementation. Honest gap: T1-AuditF roadmap." },
             { "name": "GEMVT Causal Ordering", "value": "0.024% false-positive rate", "source": "fabric-flight", "pillar": "reliability", "comparisons": [{"system": "Lamport timestamps", "value": "No clearance encoding"}, {"system": "CockroachDB HLC", "value": "No security field"}, {"system": "Vector clocks", "value": "O(N) space"}], "verdict": "64-bit token: 12-bit Causal Fingerprint (0.024% FP via EpochTable), 8-bit Clearance Level (RDKC key derivation prerequisite), 36-bit Wall Time, 8-bit counter. Unauthorized decryption physically impossible without clearance-matched key." },
             { "name": "Hologram Protocol (Progressive Depth)", "value": "3 depth levels, 11 RPCs", "source": "fabric-flight", "pillar": "connectivity", "comparisons": [{"system": "GraphQL", "value": "Full server-side resolution regardless of client depth need"}, {"system": "CloudKit", "value": "Fetch-all-then-filter — full record payload"}, {"system": "gRPC streaming", "value": "No progressive depth model"}], "verdict": "L1 (structural skeleton only), L2 (+confidence envelopes), L3 (full provenance + TCI meta-edges). Watch requests L1, materializes L3 only for nearby entities — dramatically reduces neural engine wakeups vs CloudKit." },
             { "name": "TCI Meta-Edge Materialization", "value": "Flush-time implicit→explicit synthesis", "source": "fabric-flight", "pillar": "scalability", "comparisons": [{"system": "Neo4j", "value": "Edges must be explicitly written"}, {"system": "PostgreSQL", "value": "No query-pattern relationship inference"}], "verdict": "AtomicU64 co-access counter tracks entity co-query patterns. B-epsilon flush cycle autonomously synthesizes implicit correlations as semantic meta-edges. Agents receive discovered relationships without requesting them (Axiom 7: Implicit-to-Explicit)." }
@@ -338,9 +338,9 @@
           "name": "Power & Efficiency",
           "icon": "battery",
           "benchmarks": [
-            { "name": "CPU Power (QoS:BACKGROUND)", "value": "384 mW", "source": "criterion", "pillar": "efficiency", "comparisons": [{"system": "SQLite WAL+NORMAL", "value": "3,995 mW"}], "verdict": "9.1x lower CPU power on Apple Silicon. E-core pinning is the difference.", "history": [{"date": "2026-03-29", "value": "2,613 mW (unpinned)"}, {"date": "2026-03-29", "value": "437 mW (QoS)"}, {"date": "2026-03-29", "value": "384 mW (Tier 1+QoS)"}] },
-            { "name": "Delta Over Idle", "value": "157 mW", "source": "criterion", "pillar": "efficiency", "comparisons": [{"system": "SQLite delta", "value": "3,896 mW"}], "verdict": "24.8x lower incremental power cost. Battery-viable for always-on edge." },
-            { "name": "NVM Storage Energy", "value": "3,000x reduction", "source": "criterion", "pillar": "efficiency", "comparisons": [{"system": "Traditional fsync", "value": "Baseline"}], "verdict": "Epoch batching keeps NVMe in low-power sleep state." },
+            { "name": "CPU Power (QoS:BACKGROUND) — COMPUTED estimate", "value": "384 mW", "source": "criterion", "pillar": "efficiency", "comparisons": [{"system": "SQLite WAL+NORMAL", "value": "3,995 mW"}], "verdict": "COMPUTED from CPU-time × active-mode current draw (per benches/power_savings_bench.rs:30 source comment). NOT direct SMC/macmon measurement. 9.1× SQLite comparison is computed-vs-computed. Direct-measurement roadmap: T1-AuditH.", "history": [{"date": "2026-03-29", "value": "2,613 mW (unpinned)"}, {"date": "2026-03-29", "value": "437 mW (QoS)"}, {"date": "2026-03-29", "value": "384 mW (Tier 1+QoS)"}] },
+            { "name": "Delta Over Idle — COMPUTED estimate", "value": "157 mW", "source": "criterion", "pillar": "efficiency", "comparisons": [{"system": "SQLite delta", "value": "3,896 mW"}], "verdict": "COMPUTED (not SMC-measured). 24.8× lower incremental power cost. Direct-measurement roadmap: T1-AuditH." },
+            { "name": "NVM Storage Energy — DESIGN target (not measured)", "value": "3,000× design target", "source": "criterion", "pillar": "efficiency", "met": false, "comparisons": [{"system": "Traditional fsync", "value": "Baseline"}], "verdict": "DESIGN-LEVEL estimate from epoch-batching theory. No lpsr/lpddr/pasr module exists in CodeGraph. Direct-measurement roadmap: T1-AuditH." },
             { "name": "Write Amplification Factor", "value": "3.04", "source": "db-gym", "pillar": "efficiency", "comparisons": [{"system": "RocksDB LSM", "value": "10–30x"}, {"system": "SQLite B-tree", "value": "1–2x"}, {"system": "LMDB CoW", "value": "1x"}], "verdict": "3x is the B-epsilon sweet spot: better than LSM write amp, acceptable read amp." }
           ]
         }
@@ -358,7 +358,7 @@
             { "dimension": "Point Write IOPS", "trustdb": "52,100", "competitor": "50–100K", "winner": "tie", "note": "Comparable throughput" },
             { "dimension": "Point Read IOPS", "trustdb": "45,200", "competitor": "100–500K", "winner": "competitor", "note": "SQLite has decades of read optimization" },
             { "dimension": "Batch Write", "trustdb": "106K ops/s", "competitor": "80–150K", "winner": "tie", "note": "B-epsilon batching competitive" },
-            { "dimension": "CPU Power", "trustdb": "384 mW", "competitor": "3,995 mW", "winner": "trustdb", "note": "9.1x lower via QoS E-core pinning" },
+            { "dimension": "CPU Power (COMPUTED)", "trustdb": "384 mW computed", "competitor": "3,995 mW computed", "winner": "trustdb", "note": "9.1× lower via QoS E-core pinning. COMPUTED from CPU-time × current draw, not SMC-measured. Direct-measurement roadmap: T1-AuditH." },
             { "dimension": "WAF", "trustdb": "3.04", "competitor": "1–2x", "winner": "competitor", "note": "SQLite B-tree is minimal; B-epsilon trades write amp for write speed" },
             { "dimension": "Encryption", "trustdb": "Per-page governance-bound", "competitor": "SEE (paid, whole-DB)", "winner": "trustdb", "note": "Per-page vs whole-DB is a category difference" },
             { "dimension": "Access Control", "trustdb": "CBAC+RDKC (cryptographic)", "competitor": "None", "winner": "trustdb", "note": "SQLite has zero access control" },
@@ -451,7 +451,7 @@
           "highlights": [
             { "metric": "Point Write", "value": "~40µs/entity", "note": "2.2x improvement from flush_threshold fix" },
             { "metric": "FileIo Throughput", "value": "8,616 ops/s", "note": "Optimal NVMe tuning grid" },
-            { "metric": "CPU Power", "value": "384 mW", "note": "9.1x lower than SQLite via QoS" },
+            { "metric": "CPU Power (COMPUTED)", "value": "384 mW computed", "note": "9.1× lower than SQLite via QoS. COMPUTED (CPU-time × current draw), not SMC-measured. Roadmap: T1-AuditH." },
             { "metric": "WAF", "value": "3.04", "note": "Constant across all configs" }
           ]
         },
@@ -487,7 +487,7 @@
             { "metric": "Python Driver", "value": "PyO3 merged (FabricRS PR #231)", "note": "LensQuery, ConfidenceEnvelope, TemporalProvenance, GovernanceState. Full epistemic API." },
             { "metric": "WAL Security", "value": "HMAC-SHA384 chained (FabricRS PR #247)", "note": "Per-record: [0xCB magic][provenance:26B][record:N][hmac_tag:48B]. Non-repudiation per NIST AU-10." },
             { "metric": "Compliance Export", "value": "FabricRS PR #250: 7 control attestations", "note": "SOX 404, HIPAA 164.312(b)/(c)(1), NIST AU-2/3/10/12. CEF (ArcSight/Splunk) + STIX 2.1 (Sentinel/Elastic)." },
-            { "metric": "Adversarial Tests", "value": "23 → 168 gym tests", "note": "168 tests across 15 gym files. CBAC 43 → 116 tests." },
+            { "metric": "Adversarial Tests", "value": "23 → 321 gym tests (CodeGraph-canonical)", "note": "321 tests across 28 gym files (prior 168/15 counts were stale). CBAC 43 → 141 source tests." },
             { "metric": "Classification-Chain Partitioning", "value": "partition_router.rs (312 LOC, 5 tests)", "note": "Governance-aware data locality. ScopeChangeDelta triggers auto-sync." }
           ]
         }
@@ -509,7 +509,7 @@
           "source": "Criterion",
           "benchmarkCount": 15,
           "description": "Statistical microbenchmarks with confidence intervals",
-          "keyResults": ["TDQP 6.67ns", "RRMS 10.3ns", "Range scan 469µs", "384 mW CPU power"],
+          "keyResults": ["TDQP 6.67ns", "RRMS 10.3ns", "Range scan 469µs", "384 mW CPU power (COMPUTED)"],
           "runCommand": "cargo bench (in trustdb/)",
           "resultPath": "trustdb/target/criterion/"
         },
@@ -565,8 +565,8 @@
         {
           "source": "Fabric Flight Protocol",
           "benchmarkCount": 7,
-          "description": "QUIC transport, io_uring zero-copy, GEMVT causal ordering, Hologram Protocol, morsel-driven NUMA execution",
-          "keyResults": ["~25% QUIC throughput gain", "28% p50 latency reduction", "zero heap allocs (1GB bundle)", "80%+ NUMA efficiency", "0.024% GEMVT FP rate", "11 RPCs, ~264 tests"],
+          "description": "Fabric Flight v1.0 spec — 11-RPC surface, 36-module exchange layer, ~264 tests. NOTE: QUIC throughput / io_uring zero-copy / NUMA parallel efficiency are DESIGNED, not yet measured (see T1-AuditE/F/G honest gaps).",
+          "keyResults": ["11-RPC surface verified", "47 exchange modules / 346 tests", "0.024% GEMVT FP (math-derived from 12-bit CAUSAL_FP_MASK)", "3 transport adapter codecs (BLE/HTTPS/UWB)", "QUIC ~25% / io_uring / NUMA 80%+ all DESIGNED (not yet benched)"],
           "runCommand": "cargo test -p trustdb (exchange module)",
           "resultPath": "trustdb/src/exchange/",
           "note": "Transport benchmarks from Fabric Flight v1.0 spec Section 2. Protocol spec: Research/Mesh/Fabric Flight/Fabric Flight — Complete Protocol Specification v1.0.md"

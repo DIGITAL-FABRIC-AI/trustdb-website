@@ -59,9 +59,10 @@
         },
         {
           "name": "JavaScript/Node.js",
-          "value": "Not yet",
+          "value": "@trustdb/client v0.1.0",
           "target": "Stable driver via gRPC/WASM",
-          "met": false,
+          "met": true,
+          "note": "Corrected 2026-05-13: prior 'Not yet' was internal contradiction with scores.json. Reality: @trustdb/client v0.1.0 exists with 433 LOC TypeScript + real @grpc/grpc-js dependency. Stable enough to use; not yet WASM-compiled for browser.",
           "comparisons": [
             { "system": "SQLite", "value": "better-sqlite3, sql.js" },
             { "system": "Neo4j", "value": "Official driver (neo4j-driver)" }
@@ -199,7 +200,7 @@
           "value": "11 RPCs, 36-module exchange layer, ~264 tests",
           "target": "Full protocol coverage",
           "met": true,
-          "source": "Fabric Flight v1.0 spec (2026-04-03). Replaces gRPC/HTTP2 with QUIC-native transport: ~25% throughput improvement, 28% p50 latency reduction. Per-stream loss recovery (ClassificationStream → independent QUIC stream). 0-RTT resumption for known sessions. RPCs: OpenSession, UpdateSession, UpdateSpatialVolume, TraverseGraph, MaterializeRequest, PushDeltas, QueryGaps, SubscribeBeliefs, SpatialStream, ExchangeAtoms, ResolveVeiled.",
+          "source": "Fabric Flight v1.0 spec (2026-04-03). DESIGNED QUIC-native transport — target ~25% throughput / 28% p50 latency vs gRPC (NOT yet measured: quinn dep not wired in exchange::quic_transport; no QUIC-vs-gRPC bench exists). Per-stream loss recovery + 0-RTT resumption are protocol-theory benefits. VERIFIED: 11-RPC surface (rpc_surface.rs exports exactly 11 *Request structs): OpenSession, UpdateSession, UpdateSpatialVolume, TraverseGraph, MaterializeRequest, PushDeltas, QueryGaps, SubscribeBeliefs, SpatialStream, ExchangeAtoms, ResolveVeiled.",
           "comparisons": [
             { "system": "Arrow Flight (gRPC/HTTP2)", "value": "TCP head-of-line blocking; 6 RPCs; no epistemic semantics" },
             { "system": "PostgreSQL PG wire", "value": "TCP, text-based, no epistemic types, no streaming subscription" },
@@ -233,7 +234,7 @@
           ]
         }
       ],
-      "narrative": "Fabric Flight v1.0 (2026-04-03) represents a step-change in the Protocol/API pillar. The gRPC/HTTP2 wire protocol has been superseded by a QUIC-native transport delivering ~25% throughput improvement and 28% p50 latency reduction by eliminating TCP head-of-line blocking at the stream level. The 11-RPC surface covers the full protocol lifecycle: session negotiation, graph traversal with Hologram progressive depth (L1/L2/L3 materialization), differential sync (RFC 6902 JSON Patch + watermark), spatial session state (SpatialVolume as connection property — automatic EntityEntered/EntityExited push), belief subscription (WAL-flush-triggered on confidence delta threshold — closing the streaming subscriptions gap), epistemic bundle exchange, and veiled entity resolution. Three transport adapters (BLE for Watch/AirPods, HTTPS for WiFi/LTE, UWB for Vision Pro) let every Apple device participate in the same governed mesh. The semantic foundation remains: View<T> three-state, EBP state machine, SyncEnvelope/SyncDelta, GovernanceArtifact — 51 tests. External access: Fabric Flight QUIC (remote), Swift C-FFI (Apple in-process), Python PyO3 (data science), JS gRPC (web). Remaining gap: Lens-filtered subscriptions (SubscribeBeliefs currently triggers on confidence delta, not arbitrary Lens predicates).",
+      "narrative": "Fabric Flight v1.0 (2026-04-03) represents a step-change in the Protocol/API pillar. The DESIGNED QUIC-native transport targets ~25% throughput / 28% p50 latency reduction vs gRPC/HTTP2 by eliminating TCP head-of-line blocking at the stream level — those numbers are estimated from protocol theory (quinn dep not yet wired; bench not yet run). The 11-RPC surface IS verified (rpc_surface.rs exports exactly 11 *Request structs) and covers the full protocol lifecycle: session negotiation, graph traversal with Hologram progressive depth (L1/L2/L3 materialization), differential sync (RFC 6902 JSON Patch + watermark), spatial session state (SpatialVolume as connection property — automatic EntityEntered/EntityExited push), belief subscription (WAL-flush-triggered on confidence delta threshold — closing the streaming subscriptions gap), epistemic bundle exchange, and veiled entity resolution. Three transport adapter codecs (BLE 394 LOC for Watch/AirPods, HTTPS 442 LOC for WiFi/LTE, UWB 358 LOC for Vision Pro) let every Apple device participate in the same governed mesh — note these are codecs, not radio drivers; radio-driver pairings are aspirational. The semantic foundation remains: View<T> three-state, EBP state machine, SyncEnvelope/SyncDelta, GovernanceArtifact — 51 tests. External access: Fabric Flight QUIC (remote, designed), Swift C-FFI (Apple in-process, FabricRS PR #148), Python PyO3 (data science, FabricRS PR #231), JS gRPC (web, @trustdb/client v0.1.0 with 433 LOC TypeScript + @grpc/grpc-js — confirmed via package.json on 2026-05-13 audit). Remaining gap: Lens-filtered subscriptions (SubscribeBeliefs currently triggers on confidence delta, not arbitrary Lens predicates).",
       "evidence": [
         { "label": "TEP Exchange Module (51 tests)", "path": "wikai-core/crates/trustdb/src/exchange/" },
         { "label": "gRPC Proto Definition", "path": "wikai-core/crates/trustdb/proto/trustdb.proto" },

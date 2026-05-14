@@ -58,7 +58,7 @@
       "Platform fences: ARM64 dc cvap/dsb/PRFM inline assembly + x86_64 CLFLUSHOPT/SFENCE/_mm_prefetch",
       "Hardware auto-detection: Apple Silicon (FEAT_DPB), Graviton4 (Neoverse V2), x86_64 (CPUID)",
       "MmapBackend: two-region hot/cold layout for LPDDR5X PASR bank idling",
-      "EpochWalWriter: WAL elimination from hot path (3,000x storage energy reduction)",
+      "EpochWalWriter: WAL elimination from hot path (3,000× storage energy reduction is a DESIGN target — no LPDDR5X PASR module exists; direct SMC measurement is roadmap T1-AuditH)",
       "CentralHashBuffer: WALSH-inspired wait-free concurrent append buffer",
       "Adaptive config switching: auto Point-Hot/Scan-Hot based on scan ratio (41x range scan improvement)",
       "Per-thread write coalescer: 8-10x fewer CAS operations for hot-key workloads",
@@ -153,8 +153,8 @@
   {
     "date": "2026-03-29",
     "version": "Phase 3",
-    "title": "Apple Silicon power measurements",
-    "description": "QoS-based E-core pinning achieves 9.1x lower CPU power than SQLite WAL+NORMAL. 384mW (Tier 1 + QoS:BACKGROUND) vs 3,995mW (SQLite).",
+    "title": "Apple Silicon power estimates (COMPUTED, not SMC-measured)",
+    "description": "QoS-based E-core pinning achieves 9.1× lower CPU power than SQLite WAL+NORMAL (COMPUTED estimate from CPU-time × active-mode current draw per benches/power_savings_bench.rs:30 source comment). 384mW (Tier 1 + QoS:BACKGROUND) vs 3,995mW (SQLite). Direct SMC measurement is roadmap (T1-AuditH).",
     "pillarsAffected": [
       "efficiency"
     ],

@@ -183,7 +183,7 @@
           "value": "4-phase sync protocol — 13 unit tests, 14 integration tests",
           "target": "Built + enforced",
           "met": true,
-          "source": "PR #165 + PR #169. OCSS tags offline writes with 0.9x confidence penalty, restores on clean sync. 4 phases: delta computation, conflict classification, confidence restoration, gap manifest. All phases wired to store with real clearance extraction (PREFIX_CLEARANCE index), not hardcoded.",
+          "source": "FabricRS PR #165 + FabricRS PR #169. OCSS tags offline writes with 0.9x confidence penalty, restores on clean sync. 4 phases: delta computation, conflict classification, confidence restoration, gap manifest. All phases wired to store with real clearance extraction (PREFIX_CLEARANCE index), not hardcoded.",
           "comparisons": [
             { "system": "SQLite", "value": "Always available (local)", "source": "No sync protocol — local only" },
             { "system": "CouchDB", "value": "Multi-master sync (LWW)", "source": "Last-write-wins, no confidence semantics" },
@@ -195,7 +195,7 @@
           "value": "5-tier DeviceManifest, CBAC clearance-enforced sync, quorum-as-confidence thresholds",
           "target": "Implemented + tested",
           "met": true,
-          "source": "PR #169 + PR #184. DeviceManifest with 5 tiers (Mothership/Regional/Desktop/Mobile/EdgeSensor), 6 unit tests. LoR-scoped data partitioning, clearance filtering, classification gates. Quorum replaced by continuous confidence threshold (Well: 0.67, Property: 0.67, Person: 0.0). Gap manifest filtered through manifest scope. Watermark lifecycle (persist + read back). Offline duration enforcement (writes >7d rejected).",
+          "source": "FabricRS PR #169 + FabricRS PR #184. DeviceManifest with 5 tiers (Mothership/Regional/Desktop/Mobile/EdgeSensor), 6 unit tests. LoR-scoped data partitioning, clearance filtering, classification gates. Quorum replaced by continuous confidence threshold (Well: 0.67, Property: 0.67, Person: 0.0). Gap manifest filtered through manifest scope. Watermark lifecycle (persist + read back). Offline duration enforcement (writes >7d rejected).",
           "comparisons": [
             { "system": "CouchDB", "value": "No clearance, no governance, LWW only", "source": "No CBAC, no device scoping" },
             { "system": "PouchDB", "value": "No device scoping, no confidence thresholds", "source": "Flat sync without hierarchy" },
@@ -207,7 +207,7 @@
           "value": "tokio::spawn async task — 3 tokio tests, reconnect signal + 30s periodic fallback",
           "target": "Built",
           "met": true,
-          "source": "PR #165. SyncWorker spawned via tokio::spawn, SyncWorkerHandle for caller interaction (queue_write, notify_reconnect, shutdown). Failed sessions re-queue writes — no silent data loss. SyncReport emitted per session via mpsc channel.",
+          "source": "FabricRS PR #165. SyncWorker spawned via tokio::spawn, SyncWorkerHandle for caller interaction (queue_write, notify_reconnect, shutdown). Failed sessions re-queue writes — no silent data loss. SyncReport emitted per session via mpsc channel.",
           "comparisons": [
             { "system": "CouchDB", "value": "Continuous replication", "source": "HTTP long-poll" },
             { "system": "Realm", "value": "Background sync", "source": "Platform-specific sync service" }
@@ -218,7 +218,7 @@
           "value": "Self-draining: 4-way classification + tolerance-band auto-merge + confidence-wins + quorum promotion. PREFIX_CONFLICT_QUEUE + PREFIX_SNAPSHOT + PREFIX_PROVISIONAL",
           "target": "Self-draining + auto-promote",
           "met": true,
-          "source": "PR #169 + PR #201. PeerConflicts stored in PREFIX_CONFLICT_QUEUE (0x06). AuthoritativelySuperseded in PREFIX_SNAPSHOT (0x07). NEW in PR #201: (1) WN-MESH-10 tolerance-band auto-merge — numeric PeerConflicts within 5% band → confidence-weighted average (MergedToleranceBand). (2) WN-MESH-11 confidence-wins — delta > 0.2 → higher side commits, lower snapshotted (MergedConfidenceWins). (3) WN-MESH-14 quorum promotion — PREFIX_PROVISIONAL (0x08) tracks provisional keys, post-sync scan auto-promotes when confidence crosses canonical threshold. (4) WN-MESH-13 stigmergic gap manifest — sorted by RRMS access heat for mobile reconnect priority. 26 sync_ops unit tests (6 new).",
+          "source": "FabricRS PR #169 + FabricRS PR #201. PeerConflicts stored in PREFIX_CONFLICT_QUEUE (0x06). AuthoritativelySuperseded in PREFIX_SNAPSHOT (0x07). NEW in FabricRS PR #201: (1) WN-MESH-10 tolerance-band auto-merge — numeric PeerConflicts within 5% band → confidence-weighted average (MergedToleranceBand). (2) WN-MESH-11 confidence-wins — delta > 0.2 → higher side commits, lower snapshotted (MergedConfidenceWins). (3) WN-MESH-14 quorum promotion — PREFIX_PROVISIONAL (0x08) tracks provisional keys, post-sync scan auto-promotes when confidence crosses canonical threshold. (4) WN-MESH-13 stigmergic gap manifest — sorted by RRMS access heat for mobile reconnect priority. 26 sync_ops unit tests (6 new).",
           "comparisons": [
             { "system": "CouchDB", "value": "Revision tree (manual resolution)", "source": "No auto-merge, no clearance-based classification" },
             { "system": "Realm", "value": "Custom conflict handlers", "source": "Developer writes handlers, no built-in governance" },
@@ -239,7 +239,7 @@
           ]
         }
       ],
-      "narrative": "Availability has transformed from the original biggest gap to a flagship capability with 106 replication tests across 13 modules. The Raft implementation is now comprehensive: core consensus (leader election, log replication, compaction, persistence), plus advanced features — self-governing topology (WN-RAFT2-04: auto-demotion/promotion based on heartbeat, lag, conflict rate, and power state), state-as-intelligence publisher (WN-RAFT2-07: Raft telemetry as queryable graph entities), entry deduplication (WN-RAFT2-02: 3 strategies including highest-confidence), chain groups, commit certificates, expected composition tracking, and typed entry encoding. Device lifecycle (register/deregister/heartbeat/stale — 22 device tests), automatic rebalancing (scope-change detection + Raft membership changes), and a self-draining conflict pipeline (tolerance-band auto-merge, confidence-wins, quorum promotion — PR #201). The federated mesh (FWGA) provides 5-tier device hierarchy with CBAC-enforced sync, quorum-as-confidence thresholds, and stigmergic gap manifests. Unlike CouchDB/PouchDB (document sync, no governance), Cassandra (eventual consistency), or etcd (no self-governing topology), TrustDB's availability model enforces clearance at the storage layer while the topology governs itself. Remaining work: production hardening under real network partitions.",
+      "narrative": "Availability has transformed from the original biggest gap to a flagship capability with 106 replication tests across 13 modules. The Raft implementation is now comprehensive: core consensus (leader election, log replication, compaction, persistence), plus advanced features — self-governing topology (WN-RAFT2-04: auto-demotion/promotion based on heartbeat, lag, conflict rate, and power state), state-as-intelligence publisher (WN-RAFT2-07: Raft telemetry as queryable graph entities), entry deduplication (WN-RAFT2-02: 3 strategies including highest-confidence), chain groups, commit certificates, expected composition tracking, and typed entry encoding. Device lifecycle (register/deregister/heartbeat/stale — 22 device tests), automatic rebalancing (scope-change detection + Raft membership changes), and a self-draining conflict pipeline (tolerance-band auto-merge, confidence-wins, quorum promotion — FabricRS PR #201). The federated mesh (FWGA) provides 5-tier device hierarchy with CBAC-enforced sync, quorum-as-confidence thresholds, and stigmergic gap manifests. Unlike CouchDB/PouchDB (document sync, no governance), Cassandra (eventual consistency), or etcd (no self-governing topology), TrustDB's availability model enforces clearance at the storage layer while the topology governs itself. Remaining work: production hardening under real network partitions.",
       "evidence": [
         { "label": "Raft Core — raft.rs (432 LOC, 8 tests)", "path": "wikai-core/crates/trustdb/src/replication/raft.rs" },
         { "label": "Raft Node (647 LOC, 10 tests)", "path": "wikai-core/crates/trustdb/src/replication/node.rs" },
@@ -264,9 +264,9 @@
       ],
       "history": [
         { "date": "2026-03-30", "value": "OCSS + sync protocol built", "note": "4-phase sync, conflict classification taxonomy" },
-        { "date": "2026-03-31", "value": "Chain A: security model activated", "note": "PR #169 — clearance index, conflict queue, snapshot prefix, watermark lifecycle" },
-        { "date": "2026-03-31", "value": "Quorum-as-confidence", "note": "PR #184 — continuous confidence threshold replaces binary quorum" },
-        { "date": "2026-04-01", "value": "Self-draining conflicts + quorum promotion", "note": "PR #201 (merged) — tolerance-band auto-merge, confidence-wins, stigmergic gap manifest, PREFIX_PROVISIONAL" },
+        { "date": "2026-03-31", "value": "Chain A: security model activated", "note": "FabricRS PR #169 — clearance index, conflict queue, snapshot prefix, watermark lifecycle" },
+        { "date": "2026-03-31", "value": "Quorum-as-confidence", "note": "FabricRS PR #184 — continuous confidence threshold replaces binary quorum" },
+        { "date": "2026-04-01", "value": "Self-draining conflicts + quorum promotion", "note": "FabricRS PR #201 (merged) — tolerance-band auto-merge, confidence-wins, stigmergic gap manifest, PREFIX_PROVISIONAL" },
         { "date": "2026-04-01", "value": "Raft consensus core complete", "note": "FabricRS PR #218 — 5 Raft worknodes, device lifecycle + rebalancing" },
         { "date": "2026-04-01", "value": "Entry dedup + depth-weighted election", "note": "FabricRS PR #239 — WN-RAFT2-02 (3 dedup strategies, 15 tests) + WN-RAFT2-06" },
         { "date": "2026-04-02", "value": "Topology governor + state publisher", "note": "FabricRS PR #247 — WN-RAFT2-04 (auto-demotion/promotion, 8 tests) + WN-RAFT2-07 (graph-queryable Raft state, 4 tests). Total: 106 replication tests" }

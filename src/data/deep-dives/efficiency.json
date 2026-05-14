@@ -128,12 +128,13 @@
     {
       "metric": "powerConsumption",
       "metricName": "Power Consumption",
-      "score": 9.8,
-      "status": "excellent",
+      "score": 8.0,
+      "status": "strong",
+      "note": "Score revised 2026-05-13 from 9.8 → 8.0: power numbers below are COMPUTED estimates (CPU-time × active-mode current draw per benches/power_savings_bench.rs:30), not SMC-measured. Direct SMC/macmon measurement is roadmap (T1-AuditH).",
       "benchmarks": [
         {
-          "name": "CPU Power (QoS:BACKGROUND)",
-          "value": "384 mW",
+          "name": "CPU Power (QoS:BACKGROUND) — COMPUTED estimate",
+          "value": "384 mW (computed)",
           "target": "<500 mW",
           "met": true,
           "comparisons": [
@@ -149,8 +150,8 @@
           ]
         },
         {
-          "name": "Delta Over Idle",
-          "value": "157 mW",
+          "name": "Delta Over Idle — COMPUTED estimate",
+          "value": "157 mW (computed)",
           "target": "<300 mW",
           "met": true,
           "comparisons": [
@@ -186,10 +187,11 @@
           ]
         },
         {
-          "name": "NVM Energy Profile",
-          "value": "3,000x storage energy reduction",
-          "target": "<10x",
-          "met": true,
+          "name": "NVM Energy Profile — DESIGN target (not measured)",
+          "value": "3,000× design target",
+          "target": "<10× floor",
+          "met": false,
+          "note": "DESIGN-LEVEL estimate from epoch-batching theory. No lpsr/lpddr/pasr module exists in CodeGraph. Honest gap: T1-AuditH.",
           "comparisons": [
             {
               "system": "Tier 1 dc cvap",
