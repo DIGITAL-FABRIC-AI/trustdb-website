@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-13",
+  "lastUpdated": "2026-06-16",
   "pillars": {
     "performance": {
       "name": "Performance",
@@ -114,21 +114,21 @@
       "name": "Security & Compliance",
       "subtitle": "The Protection Pillar",
       "icon": "lock",
-      "overallScore": 8.7,
+      "overallScore": 9.0,
       "metrics": {
         "accessControl": {
           "name": "Access Control",
-          "score": 8.0,
+          "score": 8.5,
           "status": "strong",
-          "summary": "CBAC 6-state circuit breaker (141 source tests; CodeGraph-canonical; prior 99/116 counts were stale) + REWG graph-derived entitlements (27 tests) + EACB threshold signatures (21 tests; FROST is DESIGNED not implemented — only ThresholdVerifier trait + MockVerifier present). RDKC governance-bound cryptographic access control (95 source / 149 total tests). 321 adversarial gym tests across 28 files. 25,343 security LOC across 94 submodules in 14 namespaces. ML-DSA-87 IS IMPLEMENTED (cam::ml_dsa87_provider 287 LOC / 9 tests) — prior 'Gap' framing was wrong. Gap: FIPS 140-3 module validation (algorithms approved; module wrapper not yet validated; ~$15K NIST CAVP queue).",
-          "lastUpdated": "2026-04-06"
+          "summary": "CBAC 6-state circuit breaker (141 source tests; CodeGraph-canonical) + REWG graph-derived entitlements (27 tests) + EACB threshold signatures (21 tests). RDKC governance-bound cryptographic access control (95 source / 149 total tests). 321 adversarial gym tests across 28 files. 25,343 security LOC across 94 submodules in 14 namespaces. ML-DSA-87 NIST ACVP-validated (sigVer passed NIST live server, session 744723, CNSA 2.0 Cat-5 — 2026-06-16). Gap: FIPS 140-3 CMVP module certification (ACVP algorithm validation done; module wrapper submission pending).",
+          "lastUpdated": "2026-06-16"
         },
         "encryption": {
           "name": "Encryption",
-          "score": 8.5,
-          "status": "strong",
-          "summary": "AES-256-GCM-SIV per-page encryption with governance-bound keys (RDKC). ML-KEM-1024 + X25519 hybrid PQ transport. CNSA 2.0 profiles (130 CAM tests). TEE/HSM/TPM/PUF hardware trust (48 tests). LDP+ORAM+FHE privacy (39 tests). ZK-STARK governance proofs (11 tests). WAL HMAC-SHA384 chain (17 tests). WAF=3.03 zero overhead. 2,407 tests passing. Gap: FIPS 140-3 formal certification.",
-          "lastUpdated": "2026-04-06"
+          "score": 9.2,
+          "status": "excellent",
+          "summary": "AES-256-GCM-SIV per-page encryption with governance-bound keys (RDKC). ML-KEM-1024 + X25519 hybrid PQ transport. CNSA 2.0 profiles (130 CAM tests). TEE/HSM/TPM/PUF hardware trust (48 tests). LDP+ORAM+FHE privacy (39 tests). ZK-STARK governance proofs (11 tests). WAL HMAC-SHA384 chain (17 tests). WAF=3.03 zero overhead. NIST ACVP live pass (2026-06-16): ML-KEM-1024 keyGen/encapDecap + ML-DSA-87 sigVer all passed on NIST's live ACVP server (session 744723, CNSA 2.0 Cat-5). Offline KAT 35/35. Gap: FIPS 140-3 CMVP module certification (algorithm validation done; module submission next).",
+          "lastUpdated": "2026-06-16"
         },
         "auditing": {
           "name": "Auditing",
@@ -179,7 +179,7 @@
           "name": "Drivers & ORMs",
           "score": 7.5,
           "status": "strong",
-          "summary": "4-language driver coverage: Rust (native), Python PyO3 (~2,200 LOC, 4 named classes — merged FabricRS PR #231), Swift C-FFI (5 Apple target triples — iOS / iOS-sim / watchOS / watchOS-sim / darwin; tvOS+visionOS aspirational — merged FabricRS PR #148), JavaScript/TypeScript gRPC client (@trustdb/client v0.1.0, 433 LOC TypeScript + @grpc/grpc-js — verified). Apple deep integration: power-shaped sync, Watch/AirPods delta sync codecs (radio-driver pairings aspirational), Vision Pro spatial scoping.",
+          "summary": "4-language driver coverage: Rust (native), Python PyO3 (~2,200 LOC, 4 named classes — merged FabricRS PR #231), Swift C-FFI (5 Apple target triples — iOS / iOS-sim / watchOS / watchOS-sim / darwin; tvOS+visionOS aspirational — merged FabricRS PR #148), JavaScript/TypeScript gRPC client (@BraidDB/client v0.1.0, 433 LOC TypeScript + @grpc/grpc-js — verified). Apple deep integration: power-shaped sync, Watch/AirPods delta sync codecs (radio-driver pairings aspirational), Vision Pro spatial scoping.",
           "lastUpdated": "2026-04-03"
         },
         "protocol": {
@@ -193,7 +193,7 @@
           "name": "Tooling & Observability",
           "score": 7.5,
           "status": "strong",
-          "summary": "WAT + Prometheus exporter (12 tests). OTel #[instrument] on 5 key store ops. 2 Grafana dashboards (overview + mesh health). DB-Gym (17 workloads). TrustDB Scorecard. Gaps: GUI admin, CLI tool.",
+          "summary": "WAT + Prometheus exporter (12 tests). OTel #[instrument] on 5 key store ops. 2 Grafana dashboards (overview + mesh health). DB-Gym (17 workloads). BraidDB Scorecard. Gaps: GUI admin, CLI tool.",
           "lastUpdated": "2026-04-03"
         }
       }

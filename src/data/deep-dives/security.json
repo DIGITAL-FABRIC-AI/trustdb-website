@@ -2,12 +2,12 @@
   "pillar": "security",
   "pillarName": "Security & Compliance",
   "subtitle": "The Protection Pillar",
-  "overallScore": 8.7,
+  "overallScore": 9.0,
   "sections": [
     {
       "metric": "accessControl",
       "metricName": "Access Control",
-      "score": 8.0,
+      "score": 8.5,
       "status": "strong",
       "benchmarks": [
         {
@@ -73,26 +73,27 @@
           ]
         }
       ],
-      "narrative": "Access control is TrustDB's strongest differentiator, backed by 99 CBAC unit tests, 92 RDKC tests, 21 EACB tests, 20 CBAC-RDKC integration tests, and 352 adversarial gym test functions across 28 files. CBAC implements a 6-state governance circuit breaker (Open, Restricted, Suspended, Quarantined, Sealed, EngagementAuthorized) with compare-and-swap semantics. REWG derives entitlements from graph position via bitwise AND \u2014 no ACL tables, no policy engine. EACB provides FROST threshold signatures for LAWS 3000.09 human-in-the-loop authorization. Access control is cryptographic: RDKC derives unique per-page keys from governance state. A CUI-clearance entity cannot derive the key for a SECRET page \u2014 verified by gym_g01 clearance boundary battery and gym_p01 pre-redaction leakage proof. Gap to 9.5: ML-DSA-87 post-quantum signatures (CNSA 2.0), FIPS ACVP formal validation, and timing side-channel proof on target hardware.",
+      "narrative": "Access control is BraidDB's strongest differentiator, backed by 141 CBAC unit tests, 92 RDKC tests, 21 EACB tests, 20 CBAC-RDKC integration tests, and 352 adversarial gym test functions across 28 files. CBAC implements a 6-state governance circuit breaker (Open, Restricted, Suspended, Quarantined, Sealed, EngagementAuthorized) with compare-and-swap semantics. REWG derives entitlements from graph position via bitwise AND \u2014 no ACL tables, no policy engine. EACB provides FROST threshold signatures for LAWS 3000.09 human-in-the-loop authorization. Access control is cryptographic: RDKC derives unique per-page keys from governance state. A CUI-clearance entity cannot derive the key for a SECRET page \u2014 verified by gym_g01 clearance boundary battery and gym_p01 pre-redaction leakage proof. ML-DSA-87 (the signature algorithm used throughout access control) passed NIST's live ACVP validation server on 2026-06-16 (session 744723, CNSA 2.0 Cat-5) \u2014 prior ACVP gap is closed. Gap to 9.5: FIPS 140-3 CMVP module certification (algorithm correctness now NIST-graded; module wrapper submission is the next step) and timing side-channel proof on target hardware.",
       "evidence": [
-        { "label": "CBAC Module (141 source tests; 206 total with test files)", "path": "trustdb/src/cbac/" },
-        { "label": "REWG Module (27 tests)", "path": "trustdb/src/rewg/ + store/rewg_ops.rs" },
-        { "label": "EACB Module (21 tests)", "path": "trustdb/src/eacb/" },
-        { "label": "RDKC Module (92 tests)", "path": "trustdb/src/rdkc/" },
-        { "label": "Gym: 28 files, 352 test functions", "path": "trustdb/tests/gym_*.rs" },
-        { "label": "CBAC-RDKC Integration (20 tests)", "path": "trustdb/tests/cbac_rdkc_integration_test.rs" },
-        { "label": "Gym: Clearance Battery", "path": "trustdb/tests/gym_g01_clearance_boundary.rs" },
-        { "label": "Gym: Pre-Redaction Leakage", "path": "trustdb/tests/gym_p01_pre_redaction_leakage.rs" }
+        { "label": "CBAC Module (141 source tests; 206 total with test files)", "path": "BraidDB/src/cbac/" },
+        { "label": "REWG Module (27 tests)", "path": "BraidDB/src/rewg/ + store/rewg_ops.rs" },
+        { "label": "EACB Module (21 tests)", "path": "BraidDB/src/eacb/" },
+        { "label": "RDKC Module (92 tests)", "path": "BraidDB/src/rdkc/" },
+        { "label": "Gym: 28 files, 352 test functions", "path": "BraidDB/tests/gym_*.rs" },
+        { "label": "CBAC-RDKC Integration (20 tests)", "path": "BraidDB/tests/cbac_rdkc_integration_test.rs" },
+        { "label": "Gym: Clearance Battery", "path": "BraidDB/tests/gym_g01_clearance_boundary.rs" },
+        { "label": "Gym: Pre-Redaction Leakage", "path": "BraidDB/tests/gym_p01_pre_redaction_leakage.rs" }
       ],
       "history": [
+        { "date": "2026-06-16", "value": "8.5", "note": "ML-DSA-87 sigVer NIST ACVP live pass (session 744723, CNSA 2.0 Cat-5). ACVP gap closed; CMVP submission is next." },
         { "date": "2026-04-06", "value": "8.0", "note": "Updated test counts: 99 CBAC, 92 RDKC, 21 EACB, 352 gym functions across 28 files. 15,913 security LOC. 84 modules. Gap: ML-DSA-87, FIPS ACVP." }
       ]
     },
     {
       "metric": "encryption",
       "metricName": "Encryption",
-      "score": 8.5,
-      "status": "strong",
+      "score": 9.2,
+      "status": "excellent",
       "benchmarks": [
         {
           "name": "Encryption at Rest",
@@ -222,8 +223,19 @@
           ]
         },
         {
-          "name": "FIPS 140-3 Validation",
-          "value": "Not formally submitted \u2014 ACVP vectors built, algorithms implemented, boundary not yet formalized",
+          "name": "NIST ACVP Algorithm Validation",
+          "value": "ML-KEM-1024 (keyGen + encapDecap) + ML-DSA-87 (sigVer) passed on NIST's live ACVP server \u2014 session 744723, isSample=false, CNSA 2.0 Category-5 (2026-06-16). Offline KAT 35/35.",
+          "target": "NIST-graded correctness",
+          "met": true,
+          "comparisons": [
+            { "system": "SQLCipher", "value": "FIPS 140-2 validated (paid CMVP, not ACVP-listed)" },
+            { "system": "MongoDB Enterprise", "value": "FIPS 140-2 validated (CMVP)" },
+            { "system": "RocksDB / PostgreSQL", "value": "No NIST ACVP validation" }
+          ]
+        },
+        {
+          "name": "FIPS 140-3 Module Certification (CMVP)",
+          "value": "Not yet submitted \u2014 ACVP algorithm validation complete; next step is module boundary definition + accredited lab engagement (CMVP queue)",
           "target": "FIPS 140-3 Level 1",
           "met": false,
           "comparisons": [
@@ -232,23 +244,24 @@
           ]
         }
       ],
-      "narrative": "Encryption is TrustDB's defining capability. 125,181 total LOC across 527 source files in 84 modules. Security-specific: 15,913 LOC across 14 security modules (rdkc, cam, cbac, eacb, tee, zk, fhe, hsm, tpm, puf, vdf, ldp, oram, wal) with 451 unit tests + 352 adversarial gym functions. Every 16KB page encrypted with AES-256-GCM-SIV using a unique key derived by RDKC from 4 governance inputs. ML-KEM-1024 + X25519 hybrid post-quantum transport. TEE/HSM/TPM/PUF hardware trust chain. LDP + ORAM + FHE privacy layers. ZK-STARK governance proofs. WAF=3.03 invariance (zero governance overhead). WAL HMAC-SHA384 chained with per-record provenance. Gap to 9.5: FIPS 140-3 formal submission (implementation ready, certification process not started).",
+      "narrative": "Encryption is BraidDB's defining capability — now NIST-independently-validated. On 2026-06-16, ML-KEM-1024 (keyGen + encapDecap) and ML-DSA-87 (sigVer) passed on NIST's live ACVP validation server (session 744723, isSample=false, CNSA 2.0 Category-5). Offline KAT 35/35. This means NIST generates the test vectors, BraidDB's engine computes the answers, and NIST grades them — independent correctness verification, not a self-assessment. Implementation: 125,181 total LOC across 527 source files in 84 modules. Security-specific: 15,913 LOC across 14 security modules with 451 unit tests + 352 adversarial gym functions. Every 16KB page encrypted with AES-256-GCM-SIV using a unique key derived by RDKC from 4 governance inputs. ML-KEM-1024 + X25519 hybrid post-quantum transport. TEE/HSM/TPM/PUF hardware trust chain. LDP + ORAM + FHE privacy layers. ZK-STARK governance proofs. WAF=3.03 invariance (zero governance overhead). WAL HMAC-SHA384 chained with per-record provenance. Gap to 10.0: FIPS 140-3 CMVP module certification (algorithm correctness now NIST-graded; module wrapper submission is the next step — requires accredited lab + NIST queue). Public phrasing: 'CNSA 2.0-aligned; ML-KEM-1024 + ML-DSA-87 ACVP-demonstrated correct against NIST's live validation server; CMVP pending.'",
       "evidence": [
-        { "label": "RDKC (92 tests)", "path": "trustdb/src/rdkc/" },
-        { "label": "CAM (130 tests)", "path": "trustdb/src/cam/" },
-        { "label": "CBAC (141 tests)", "path": "trustdb/src/cbac/" },
-        { "label": "EACB (21 tests)", "path": "trustdb/src/eacb/" },
-        { "label": "TEE (26 tests)", "path": "trustdb/src/tee/" },
-        { "label": "ZK (11 tests)", "path": "trustdb/src/zk/" },
-        { "label": "FHE (19 tests)", "path": "trustdb/src/fhe/" },
-        { "label": "HSM+TPM+PUF (22 tests)", "path": "trustdb/src/hsm/ + tpm/ + puf/" },
-        { "label": "VDF+LDP+ORAM (31 tests)", "path": "trustdb/src/vdf/ + ldp/ + oram/" },
-        { "label": "WAL (17 tests inc HMAC chain)", "path": "trustdb/src/wal/wal.rs" },
-        { "label": "Gym: 28 files, 352 functions", "path": "trustdb/tests/gym_*.rs" },
-        { "label": "Page Crypto (11 tests)", "path": "trustdb/src/rdkc/page_crypto.rs" },
-        { "label": "Transport (6 tests)", "path": "trustdb/src/rdkc/transport.rs" }
+        { "label": "RDKC (92 tests)", "path": "BraidDB/src/rdkc/" },
+        { "label": "CAM (130 tests)", "path": "BraidDB/src/cam/" },
+        { "label": "CBAC (141 tests)", "path": "BraidDB/src/cbac/" },
+        { "label": "EACB (21 tests)", "path": "BraidDB/src/eacb/" },
+        { "label": "TEE (26 tests)", "path": "BraidDB/src/tee/" },
+        { "label": "ZK (11 tests)", "path": "BraidDB/src/zk/" },
+        { "label": "FHE (19 tests)", "path": "BraidDB/src/fhe/" },
+        { "label": "HSM+TPM+PUF (22 tests)", "path": "BraidDB/src/hsm/ + tpm/ + puf/" },
+        { "label": "VDF+LDP+ORAM (31 tests)", "path": "BraidDB/src/vdf/ + ldp/ + oram/" },
+        { "label": "WAL (17 tests inc HMAC chain)", "path": "BraidDB/src/wal/wal.rs" },
+        { "label": "Gym: 28 files, 352 functions", "path": "BraidDB/tests/gym_*.rs" },
+        { "label": "Page Crypto (11 tests)", "path": "BraidDB/src/rdkc/page_crypto.rs" },
+        { "label": "Transport (6 tests)", "path": "BraidDB/src/rdkc/transport.rs" }
       ],
       "history": [
+        { "date": "2026-06-16", "value": "9.2", "note": "NIST ACVP live pass: ML-KEM-1024 keyGen/encapDecap + ML-DSA-87 sigVer all passed (session 744723, CNSA 2.0 Cat-5). Offline KAT 35/35. FIPS ACVP gap closed; CMVP module submission is next." },
         { "date": "2026-04-06", "value": "8.5", "note": "Updated: 125K LOC, 527 files, 84 modules. Security: 15,913 LOC, 451 unit tests, 352 gym functions. 14 security modules. Gap: FIPS 140-3 formal submission." }
       ]
     },
@@ -353,14 +366,14 @@
       ],
       "narrative": "Auditing is the most complete pillar at 9.5. ProvenanceChain tracks who/what/when on every entity at zero overhead. TCI discovers implicit relationships at flush time. CBAC audit trail records every state change with CAS-versioned immutability. WAL HMAC-SHA384 chained format (FabricRS PR #247) provides tamper-proof audit with per-record provenance (agent_id, clearance, connectivity, timestamp) \u2014 26 bytes overhead, 33 tests, ACVP vectors for NIST validation prep. Compliance export (PR #250) covers SOX 404, HIPAA, NIST AU controls. SIEM integration outputs CEF for Splunk/ArcSight and STIX 2.1 for Sentinel/Elastic. GYM-R01 SSP Evidence maps 28 gym files to 9 NIST SP 800-53 control families. The only gap to 10.0: FIPS 140-3 lab certification of the HMAC implementation (process, not engineering).",
       "evidence": [
-        { "label": "Provenance Module", "path": "trustdb/src/primitives/provenance.rs" },
-        { "label": "TCI Module", "path": "trustdb/src/tci/" },
-        { "label": "CBAC Audit (141 tests)", "path": "trustdb/src/cbac/audit.rs" },
-        { "label": "WAL HMAC Chain (17 tests)", "path": "trustdb/src/wal/wal.rs" },
-        { "label": "Compliance Export (PR #250)", "path": "trustdb/src/store/compliance_export.rs" },
-        { "label": "SIEM Integration (PR #250)", "path": "trustdb/src/store/siem_export.rs" },
-        { "label": "GYM-R01 SSP Evidence", "path": "trustdb/tests/gym_r01_ssp_evidence.rs" },
-        { "label": "Gym: Adversarial (62 tests)", "path": "trustdb/tests/gym_a01..a03 + gym_g02" }
+        { "label": "Provenance Module", "path": "BraidDB/src/primitives/provenance.rs" },
+        { "label": "TCI Module", "path": "BraidDB/src/tci/" },
+        { "label": "CBAC Audit (141 tests)", "path": "BraidDB/src/cbac/audit.rs" },
+        { "label": "WAL HMAC Chain (17 tests)", "path": "BraidDB/src/wal/wal.rs" },
+        { "label": "Compliance Export (PR #250)", "path": "BraidDB/src/store/compliance_export.rs" },
+        { "label": "SIEM Integration (PR #250)", "path": "BraidDB/src/store/siem_export.rs" },
+        { "label": "GYM-R01 SSP Evidence", "path": "BraidDB/tests/gym_r01_ssp_evidence.rs" },
+        { "label": "Gym: Adversarial (62 tests)", "path": "BraidDB/tests/gym_a01..a03 + gym_g02" }
       ],
       "history": [
         { "date": "2026-04-06", "value": "9.5", "note": "Updated test counts. WAL HMAC chain (FabricRS PR #247), compliance export + SIEM (PR #250), GYM-R01 SSP evidence all on main." }

@@ -1,5 +1,24 @@
 [
   {
+    "date": "2026-06-16",
+    "version": "Security Milestone",
+    "title": "NIST ACVP live pass: ML-KEM-1024 + ML-DSA-87 (CNSA 2.0 Cat-5)",
+    "description": "ML-KEM-1024 (keyGen + encapDecap) and ML-DSA-87 (sigVer) passed on NIST's live ACVP production server — session 744723, isSample=false, CNSA 2.0 Category-5. Offline KAT 35/35. NIST generates the vectors, BraidDB's engine computes the answers, NIST grades them. Security pillar updated: Encryption 8.5 → 9.2 (excellent), Access Control 8.0 → 8.5 (ACVP gap closed), Overall Security 8.7 → 9.0. FIPS 140-3 CMVP module certification is the next step. Honest scope: ACVP = algorithm-correctness validation (done); CMVP = full module certification (requires accredited lab + NIST queue, not yet started). Public phrasing: 'CNSA 2.0-aligned; ML-KEM-1024 + ML-DSA-87 ACVP-demonstrated correct against NIST's live validation server; CMVP pending.' Never 'FIPS validated.'",
+    "pillarsAffected": ["security"],
+    "tags": ["milestone", "security", "pqc", "nist", "calibration-100"],
+    "entries": [
+      "ML-KEM-1024 keyGen: PASSED — NIST live ACVP, session 744723",
+      "ML-KEM-1024 encapDecap: PASSED — NIST live ACVP, session 744723",
+      "ML-DSA-87 sigVer: PASSED — NIST live ACVP, session 744723",
+      "Offline KAT suite: 35/35 against embedded NIST vectors",
+      "Encryption score: 8.5 → 9.2 (strong → excellent)",
+      "Access Control score: 8.0 → 8.5 (ML-DSA-87 ACVP gap closed)",
+      "Security overall: 8.7 → 9.0",
+      "FIPS 140-3 benchmark split into ACVP (passed) + CMVP (pending)",
+      "Reusable assets: Python mTLS driver + stable exe at D:\\X Comp Google\\Digital Fabric Corp\\nist-acvp\\"
+    ]
+  },
+  {
     "date": "2026-05-13",
     "version": "Ground-Truth Update",
     "title": "7-paradigm leaderboard added + 4 audit findings hot-patched",
@@ -53,7 +72,7 @@
       "reliability"
     ],
     "entries": [
-      "trustdb-nvm crate: 26 source files, ~11K lines, 214 tests — full hardware-aware persistence stack",
+      "BraidDB-nvm crate: 26 source files, ~11K lines, 214 tests — full hardware-aware persistence stack",
       "Three-tier epoch persistence: Tier 1 dc cvap (~50ns), Tier 2 msync (~50µs), Tier 3 F_FULLFSYNC (~15ms)",
       "Platform fences: ARM64 dc cvap/dsb/PRFM inline assembly + x86_64 CLFLUSHOPT/SFENCE/_mm_prefetch",
       "Hardware auto-detection: Apple Silicon (FEAT_DPB), Graviton4 (Neoverse V2), x86_64 (CPUID)",
@@ -76,7 +95,7 @@
     "date": "2026-03-31",
     "version": "Phase 4",
     "title": "TEP Exchange Protocol — Lane A semantic foundation complete",
-    "description": "TrustDB Exchange Protocol (TEP) semantic foundation implemented: View<T> three-state returns (Present/ExpectedAbsent/Unknown), EBP state machine (Explore/Provisional/Commit with storage-enforced transitions), AssertionMeta (entropy + OCSS offline metadata), SyncEnvelope/SyncDelta universal exchange types, GovernanceArtifact with Blake3 integrity (compliance by construction). 5 files, 2,185 LOC, 51 tests. Wikai coordination entity created with 21 worknodes across 5 lanes for multi-session parallel build.",
+    "description": "BraidDB Exchange Protocol (TEP) semantic foundation implemented: View<T> three-state returns (Present/ExpectedAbsent/Unknown), EBP state machine (Explore/Provisional/Commit with storage-enforced transitions), AssertionMeta (entropy + OCSS offline metadata), SyncEnvelope/SyncDelta universal exchange types, GovernanceArtifact with Blake3 integrity (compliance by construction). 5 files, 2,185 LOC, 51 tests. Wikai coordination entity created with 21 worknodes across 5 lanes for multi-session parallel build.",
     "pillarsAffected": [
       "connectivity"
     ],
@@ -90,7 +109,7 @@
     "date": "2026-03-31",
     "version": "Phase 3.1",
     "title": "Scorecard website launched",
-    "description": "First version of the TrustDB scorecard tracking all 6 pillars with deep-dive documentation.",
+    "description": "First version of the BraidDB scorecard tracking all 6 pillars with deep-dive documentation.",
     "pillarsAffected": [],
     "tags": [
       "milestone"
