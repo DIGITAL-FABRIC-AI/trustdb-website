@@ -24,18 +24,18 @@
         },
         {
           "title": "Data page CRC32c checksums",
-          "status": "planned",
+          "status": "complete",
           "priority": "medium",
-          "description": "WAL pages checksummed (FNV32), data pages not yet. Add CRC32c via crc32fast crate for silent corruption detection.",
+          "description": "Shipped in PR #247. CRC32c on data pages; WAL upgraded from FNV32 to HMAC-SHA384 chained format with per-record WalProvenance (26 bytes). Tamper-proof chain: each tag covers prev_tag + provenance + data. 33 WAL tests.",
           "pillarsAffected": [
             "reliability"
           ]
         },
         {
           "title": "Multi-writer concurrency",
-          "status": "idea",
+          "status": "complete",
           "priority": "medium",
-          "description": "Current SSI is single-writer. Evaluate partitioned writers or optimistic concurrency for higher write throughput.",
+          "description": "64-stripe partitioned locks (PR #247): FNV-1a hash routes writers to independent stripes — concurrent writes to different partitions proceed in parallel. CoW snapshots keep reads non-blocking. Deadlock-free via sorted lock ordering. ConflictGraph tracks cross-partition conflicts. Note: full SSI write-skew prevention is still roadmap (not yet wired into tx::transaction::commit()).",
           "pillarsAffected": [
             "performance",
             "scalability"
@@ -50,7 +50,7 @@
           "title": "Wire standalone modules into store",
           "status": "planned",
           "priority": "high",
-          "description": "12 modules built and tested but not yet integrated: 5-Vertex, Domain Decay, Stigmergic, HAPC, EPIC, REWG, SCD, CBQ, TER, EBA, and more.",
+          "description": "Partial: REWG, CBAC, EACB, RDKC are fully integrated. Remaining: Domain Decay, HAPC, EPIC, SCD, CBQ, TER, EBA, 5-Vertex not yet wired into the main store path.",
           "pillarsAffected": [
             "performance",
             "reliability"
@@ -58,9 +58,9 @@
         },
         {
           "title": "CBAC (Confidence-Based Access Control)",
-          "status": "planned",
+          "status": "complete",
           "priority": "high",
-          "description": "Implement JRGM-derived governance traversal for access control. Entities exist before governance, auth accretes via CBAC spectrum.",
+          "description": "Shipped. 6-state governance circuit breaker with CAS semantics (141 source tests, CodeGraph-canonical). REWG graph-derived entitlements wired (27 tests). EACB threshold signatures (21 tests). RDKC governance-bound cryptographic access control (95 source / 149 total tests). 321 adversarial gym tests across 28 files. ML-DSA-87 NIST ACVP-validated (session 744723, CNSA 2.0 Cat-5).",
           "pillarsAffected": [
             "security"
           ]
@@ -82,18 +82,18 @@
       "items": [
         {
           "title": "Encryption at rest",
-          "status": "planned",
+          "status": "complete",
           "priority": "high",
-          "description": "AES-256 page-level encryption for on-disk data. Key management via platform integration.",
+          "description": "Shipped. AES-256-GCM-SIV per-page with governance-bound keys (unique key per page derived from 4 governance inputs). ML-KEM-1024 hybrid key transport. KAT-verified. NIST ACVP live pass: ML-KEM-1024 keyGen/encapDecap (session 744723, CNSA 2.0 Cat-5). Per-page nonce safety, structural key expiry, background re-encryption. 130 CAM tests.",
           "pillarsAffected": [
             "security"
           ]
         },
         {
-          "title": "Encryption in transit (TEP)",
-          "status": "planned",
+          "title": "Encryption in transit",
+          "status": "complete",
           "priority": "medium",
-          "description": "TrustDB Exchange Protocol with TLS for world graph sync and client connections.",
+          "description": "Shipped — both legs live as of 2026-06-16. (1) Payload layer (Cat-5): X-Wing-1024 encapsulation wired into exchange layer — PR #2342 peer-mesh sealing, #2344 GNSE type-bound AAD, #2348 ML-DSA-87 signed auto key-exchange. (2) TLS KEX (hybrid Cat-3): X25519MLKEM768 via rustls + aws-lc-rs, pqc-tls-terminator crate (PR #2350), live on braidera.com — reproducibly verified via openssl s_client forced-offer test. Precision: TLS KEX is ML-KEM-768 (Cat-3); cert auth classical; api.digital-fabric.com ALB is classical at the socket (deploy gap, not code gap).",
           "pillarsAffected": [
             "security",
             "connectivity"
@@ -116,9 +116,9 @@
       "items": [
         {
           "title": "Raft consensus production-ready",
-          "status": "planned",
+          "status": "complete",
           "priority": "medium",
-          "description": "Raft scaffold built. Needs leader election, log compaction, and snapshot transfer for production use.",
+          "description": "Shipped. 13 modules, 4,896 LOC, 106 tests. Core: leader election, log replication, compaction, persistence. Advanced: self-governing topology (WN-RAFT2-04, auto-demotion/promotion — 8 tests), state-as-intelligence publisher (WN-RAFT2-07, graph-queryable Raft state — 4 tests), entry dedup (WN-RAFT2-02, 3 strategies — 15 tests). Device lifecycle: register/deregister/heartbeat (22 device tests across 3 modules). 10/10 benchmarks green.",
           "pillarsAffected": [
             "scalability",
             "reliability"
@@ -126,9 +126,9 @@
         },
         {
           "title": "World graph federation (FWGA)",
-          "status": "idea",
+          "status": "complete",
           "priority": "medium",
-          "description": "Federated world graph anchoring for cross-instance knowledge sharing. 4-phase offline sync protocol designed.",
+          "description": "Shipped. 5-tier DeviceManifest, CBAC-enforced sync, quorum-as-confidence. Scope-change detection + ScopeChangeDelta triggers auto-rebalancing. Online device add/remove (zero-downtime). Progressive compaction. Read scaling near-flat (20.2–22.5µs for 10× data). Federated mesh with automatic rebalancing and self-draining conflict pipeline.",
           "pillarsAffected": [
             "scalability",
             "connectivity"
@@ -151,13 +151,13 @@
         },
         {
           "title": "TEP Lane B: Lens API (WN-TEP-06 to 09)",
-          "status": "planned",
+          "status": "complete",
           "priority": "high",
-          "description": "Lens core type, composition algebra, compilation to TraversalPlan, serialization as GovernanceArtifact. The governed query engine.",
+          "description": "Shipped. Composable filters (confidence, temporal, spatial, classification). Composition algebra (intersect/union at plan level). Compilation to TraversalPlan (cacheable, serializable). Serialization as GovernanceArtifact — every query produces an audit record. TEP semantic foundation: 51 tests.",
           "pillarsAffected": [
             "connectivity"
           ],
-          "scoreImpact": "Protocol +0.7 (to ~6.2)"
+          "scoreImpact": "Protocol 5.5 → 9.0"
         },
         {
           "title": "TEP Lane C: Mesh Sync Protocol (WN-TEP-10 to 14)",
@@ -191,34 +191,34 @@
           "scoreImpact": "Protocol +1.5 (to ~8.5)"
         },
         {
-          "title": "Python driver (PyO3 + Lens/TEP)",
-          "status": "planned",
+          "title": "Python driver (PyO3)",
+          "status": "complete",
           "priority": "high",
-          "description": "Native Python bindings via PyO3 exposing Lens API, View<T>, EBP. Critical for data science and ML pipeline integration.",
+          "description": "Shipped. ~2,200 LOC, 4 named classes via PyO3 — merged FabricRS PR #231. Native Python bindings for data science and ML pipeline integration.",
           "pillarsAffected": [
             "connectivity"
           ],
-          "scoreImpact": "Drivers +2.5"
+          "scoreImpact": "Drivers: Python coverage live"
         },
         {
-          "title": "Swift bindings (UniFFI) for Apple ecosystem",
-          "status": "planned",
+          "title": "Swift bindings for Apple ecosystem",
+          "status": "complete",
           "priority": "high",
-          "description": "Swift bindings via UniFFI for always-on AI vision on Watch, Phone, Mac, Vision Pro. Competing with Core Data and Realm.",
+          "description": "Shipped via C-FFI — merged FabricRS PR #148. 5 Apple target triples: iOS, iOS-sim, watchOS, watchOS-sim, darwin. Apple deep integration: power-shaped sync, Watch/AirPods delta sync codecs, Vision Pro spatial scoping. tvOS + visionOS aspirational.",
           "pillarsAffected": [
             "connectivity"
           ],
-          "scoreImpact": "Drivers +2.0"
+          "scoreImpact": "Drivers: Apple coverage live"
         },
         {
           "title": "Prometheus metrics exporter",
-          "status": "planned",
+          "status": "complete",
           "priority": "medium",
-          "description": "Export WAT telemetry counters as Prometheus /metrics endpoint. Quick win (2 days). Pairs with Grafana dashboards.",
+          "description": "Shipped. WAT + Prometheus exporter, 12 tests. OTel #[instrument] on 5 key store ops. 2 Grafana dashboards (overview + mesh health).",
           "pillarsAffected": [
             "connectivity"
           ],
-          "scoreImpact": "Tooling +1.5"
+          "scoreImpact": "Tooling score live"
         },
         {
           "title": "API documentation + getting-started guide",
@@ -247,18 +247,18 @@
       "items": [
         {
           "title": "Real-disk (NVMe) comprehensive benchmarks",
-          "status": "planned",
+          "status": "complete",
           "priority": "high",
-          "description": "Current benchmarks mostly SimulatedIo. Need full suite on FileIo with NVMe SSD for production-representative numbers.",
+          "description": "Shipped. May 2026 EC2 benchmark suite on c6a.8xlarge, c6a.4xlarge, m7i.2xlarge. 7-paradigm leaderboard: TSBS (42.2M metrics/sec), LDBC IS-1 (296,610 QPS), YCSB-B (21.8M ops/sec), Multi-Modal (9.7ms), ClickBench (8.56s), VDBBench (4,894 QPS @ recall 0.958), SpatialBench SF1.",
           "pillarsAffected": [
             "performance"
           ]
         },
         {
           "title": "Comparative benchmarks vs competitors",
-          "status": "idea",
+          "status": "complete",
           "priority": "medium",
-          "description": "Head-to-head against SQLite, RocksDB, Neo4j, PostGIS, Elasticsearch on equivalent workloads.",
+          "description": "Shipped. Head-to-head measured on identical hardware: TSBS 9.6× QuestDB world record; LDBC IS-1 148× Neo4j 5.26.25; YCSB-B 7.1× Redis pipelined; Multi-Modal 13.5× federated stack; ClickBench 1.92× ClickHouse; SpatialBench Q1 32× SedonaDB, 9.6× DuckDB, 894× GeoPandas.",
           "pillarsAffected": [
             "performance",
             "efficiency"
@@ -280,7 +280,7 @@
       "name": "NVM Storage Engine",
       "items": [
         {
-          "title": "trustdb-nvm crate: hardware-aware persistence stack",
+          "title": "BraidDB-nvm crate: hardware-aware persistence stack",
           "status": "complete",
           "priority": "high",
           "description": "26 source files, ~11K lines, 214 tests. Three-tier epoch persistence, platform fences, MmapBackend, CentralHashBuffer, adaptive config, write coalescer, confidence-weighted persistence, crash recovery. PRs #109–#186.",
