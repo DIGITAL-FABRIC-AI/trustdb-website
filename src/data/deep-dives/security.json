@@ -85,8 +85,8 @@
         { "label": "Gym: Pre-Redaction Leakage", "path": "BraidDB/tests/gym_p01_pre_redaction_leakage.rs" }
       ],
       "history": [
-        { "date": "2026-06-16", "value": "8.5", "note": "ML-DSA-87 sigVer NIST ACVP live pass (session 744723, CNSA 2.0 Cat-5). ACVP gap closed; CMVP submission is next." },
-        { "date": "2026-04-06", "value": "8.0", "note": "Updated test counts: 99 CBAC, 92 RDKC, 21 EACB, 352 gym functions across 28 files. 15,913 security LOC. 84 modules. Gap: ML-DSA-87, FIPS ACVP." }
+        { "date": "2026-06-16", "value": "8.5", "note": "ML-DSA-87 NIST ACVP live pass (session 744723, CNSA 2.0 Cat-5). ACVP gap closed; CMVP module submission is next." },
+        { "date": "2026-04-06", "value": "8.0", "note": "141 CBAC, 92 RDKC, 21 EACB, 352 gym functions across 28 files. 25,343 security LOC. 94 modules. Gap at time: ML-DSA-87, FIPS ACVP (both now closed)." }
       ]
     },
     {
@@ -279,9 +279,9 @@
         { "label": "Transport (6 tests)", "path": "BraidDB/src/rdkc/transport.rs" }
       ],
       "history": [
-        { "date": "2026-06-16", "value": "9.5", "note": "All four PQC legs complete. In-transit payload: X-Wing-1024 Cat-5 (PRs #2342/#2344/#2348). TLS KEX: X25519MLKEM768 live on braidera.com (PR #2350). Plus NIST ACVP live pass (session 744723)." },
-        { "date": "2026-06-16", "value": "9.2", "note": "NIST ACVP live pass: ML-KEM-1024 keyGen/encapDecap + ML-DSA-87 sigVer all passed (session 744723, CNSA 2.0 Cat-5). Offline KAT 35/35. FIPS ACVP gap closed; CMVP module submission is next." },
-        { "date": "2026-04-06", "value": "8.5", "note": "Updated: 125K LOC, 527 files, 84 modules. Security: 15,913 LOC, 451 unit tests, 352 gym functions. 14 security modules. Gap: FIPS 140-3 formal submission." }
+        { "date": "2026-06-16", "value": "9.5", "note": "All four PQC legs complete. In-transit payload: X-Wing-1024 Cat-5 (PRs #2342/#2344/#2348). TLS KEX: X25519MLKEM768 live on braidera.com (PR #2350). NIST ACVP live pass (session 744723)." },
+        { "date": "2026-06-16", "value": "9.2", "note": "NIST ACVP live pass: ML-KEM-1024 keyGen/encapDecap + ML-DSA-87 sigVer (session 744723, CNSA 2.0 Cat-5). Offline KAT 35/35." },
+        { "date": "2026-04-06", "value": "8.5", "note": "125K LOC, 527 files, 84 modules. 15,913 security LOC, 451 unit tests, 352 gym functions. 14 security modules." }
       ]
     },
     {
