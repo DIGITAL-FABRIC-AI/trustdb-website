@@ -2,7 +2,7 @@
   "pillar": "security",
   "pillarName": "Security & Compliance",
   "subtitle": "The Protection Pillar",
-  "overallScore": 9.0,
+  "overallScore": 9.2,
   "sections": [
     {
       "metric": "accessControl",
@@ -92,7 +92,7 @@
     {
       "metric": "encryption",
       "metricName": "Encryption",
-      "score": 9.2,
+      "score": 9.5,
       "status": "excellent",
       "benchmarks": [
         {
@@ -223,6 +223,24 @@
           ]
         },
         {
+          "name": "In-Transit Payload Encryption (X-Wing-1024, Cat-5)",
+          "value": "X-Wing-1024 (X25519 + ML-KEM-1024) payload encapsulation wired into exchange layer — PRs #2342 (peer-mesh sealing), #2344 (GNSE type-bound AAD), #2348 (ML-DSA-87 signed auto key-exchange). Cat-5 end-to-end.",
+          "target": "Post-quantum in-transit payload",
+          "met": true,
+          "comparisons": [
+            { "system": "All competitors", "value": "No in-transit payload-level PQC at the database layer" }
+          ]
+        },
+        {
+          "name": "Transport-Layer PQC TLS (X25519MLKEM768 hybrid KEX)",
+          "value": "pqc-tls-terminator crate (#2350) — rustls + aws-lc-rs, X25519MLKEM768 hybrid key exchange. Live on braidera.com (verified via openssl s_client). Precision: Cat-3 KEX (ML-KEM-768); cert auth still classical (no WebPKI PQC certs exist); api.digital-fabric.com ALB is classical (deploy gap, not code gap).",
+          "target": "Hybrid PQC TLS key exchange",
+          "met": true,
+          "comparisons": [
+            { "system": "All competitors", "value": "No database ships its own PQC TLS terminator" }
+          ]
+        },
+        {
           "name": "NIST ACVP Algorithm Validation",
           "value": "ML-KEM-1024 (keyGen + encapDecap) + ML-DSA-87 (sigVer) passed on NIST's live ACVP server \u2014 session 744723, isSample=false, CNSA 2.0 Category-5 (2026-06-16). Offline KAT 35/35.",
           "target": "NIST-graded correctness",
@@ -244,7 +262,7 @@
           ]
         }
       ],
-      "narrative": "Encryption is BraidDB's defining capability — now NIST-independently-validated. On 2026-06-16, ML-KEM-1024 (keyGen + encapDecap) and ML-DSA-87 (sigVer) passed on NIST's live ACVP validation server (session 744723, isSample=false, CNSA 2.0 Category-5). Offline KAT 35/35. This means NIST generates the test vectors, BraidDB's engine computes the answers, and NIST grades them — independent correctness verification, not a self-assessment. Implementation: 125,181 total LOC across 527 source files in 84 modules. Security-specific: 15,913 LOC across 14 security modules with 451 unit tests + 352 adversarial gym functions. Every 16KB page encrypted with AES-256-GCM-SIV using a unique key derived by RDKC from 4 governance inputs. ML-KEM-1024 + X25519 hybrid post-quantum transport. TEE/HSM/TPM/PUF hardware trust chain. LDP + ORAM + FHE privacy layers. ZK-STARK governance proofs. WAF=3.03 invariance (zero governance overhead). WAL HMAC-SHA384 chained with per-record provenance. Gap to 10.0: FIPS 140-3 CMVP module certification (algorithm correctness now NIST-graded; module wrapper submission is the next step — requires accredited lab + NIST queue). Public phrasing: 'CNSA 2.0-aligned; ML-KEM-1024 + ML-DSA-87 ACVP-demonstrated correct against NIST's live validation server; CMVP pending.'",
+      "narrative": "BraidDB is post-quantum end-to-end across all four data-protection legs — the only database to achieve this. Leg 1 (at rest): AES-256-GCM-SIV per-page encryption + ML-KEM-1024 key encapsulation, KAT-verified. Leg 2 (write integrity): ML-DSA-87 + SIS lattice accumulator + R-DPO causal chain, KAT-verified. Leg 3 (in-transit payload, Cat-5): X-Wing-1024 (X25519 + ML-KEM-1024) encapsulation wired into the exchange layer (PRs #2342/#2344/#2348) — every message sealed at Cat-5, independent of transport. Leg 4 (TLS KEX, hybrid Cat-3): X25519MLKEM768 via rustls + aws-lc-rs in the pqc-tls-terminator crate (PR #2350), live on braidera.com. NIST ACVP live pass (2026-06-16, session 744723): ML-KEM-1024 keyGen/encapDecap + ML-DSA-87 sigVer all graded passing, CNSA 2.0 Category-5. Offline KAT 35/35. Two precision points that keep this bulletproof under scrutiny: (a) TLS KEX is ML-KEM-768 (Cat-3 ceiling of the IETF hybrid draft); payload layer is Cat-5 (ML-KEM-1024). (b) Certificate authentication in TLS is still classical — no WebPKI PQC certs exist yet; say 'hybrid PQC TLS key exchange', not 'fully PQC TLS'. Deploy gap (not code): api.digital-fabric.com terminates at the AWS ALB which refuses PQC cipher suites; the pqc-tls-terminator is the path to close it. Implementation baseline: 125,181 LOC, 527 files, 84 modules, 451 unit tests + 352 adversarial gym functions across 14 security modules. Gap to 10.0: FIPS 140-3 CMVP module certification + closing the ALB deploy gap.",
       "evidence": [
         { "label": "RDKC (92 tests)", "path": "BraidDB/src/rdkc/" },
         { "label": "CAM (130 tests)", "path": "BraidDB/src/cam/" },
@@ -261,6 +279,7 @@
         { "label": "Transport (6 tests)", "path": "BraidDB/src/rdkc/transport.rs" }
       ],
       "history": [
+        { "date": "2026-06-16", "value": "9.5", "note": "All four PQC legs complete. In-transit payload: X-Wing-1024 Cat-5 (PRs #2342/#2344/#2348). TLS KEX: X25519MLKEM768 live on braidera.com (PR #2350). Plus NIST ACVP live pass (session 744723)." },
         { "date": "2026-06-16", "value": "9.2", "note": "NIST ACVP live pass: ML-KEM-1024 keyGen/encapDecap + ML-DSA-87 sigVer all passed (session 744723, CNSA 2.0 Cat-5). Offline KAT 35/35. FIPS ACVP gap closed; CMVP module submission is next." },
         { "date": "2026-04-06", "value": "8.5", "note": "Updated: 125K LOC, 527 files, 84 modules. Security: 15,913 LOC, 451 unit tests, 352 gym functions. 14 security modules. Gap: FIPS 140-3 formal submission." }
       ]

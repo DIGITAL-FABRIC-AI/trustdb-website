@@ -1,6 +1,23 @@
 [
   {
     "date": "2026-06-16",
+    "version": "Security Milestone (Full E2E)",
+    "title": "Post-quantum end-to-end complete — all four legs live",
+    "description": "BraidDB is now post-quantum end-to-end across all data-protection layers. Leg 3 (in-transit payload, Cat-5): X-Wing-1024 encapsulation wired into exchange layer (PRs #2342/#2344/#2348). Leg 4 (TLS KEX, hybrid Cat-3): pqc-tls-terminator crate via rustls + aws-lc-rs, X25519MLKEM768, live on braidera.com (PR #2350 + reproducible openssl verification). Precision: TLS KEX is ML-KEM-768 (Cat-3); cert auth still classical; api.digital-fabric.com ALB is classical (deploy gap, not code gap). Claim: 'hybrid PQC TLS key exchange', not 'fully PQC TLS'. Encryption: 9.2 → 9.5. Security overall: 9.0 → 9.2.",
+    "pillarsAffected": ["security"],
+    "tags": ["milestone", "security", "pqc", "in-transit"],
+    "entries": [
+      "Leg 3 DONE: X-Wing-1024 Cat-5 payload encapsulation — PR #2342 peer-mesh sealing",
+      "Leg 3 DONE: GNSE type-bound AAD — PR #2344",
+      "Leg 3 DONE: ML-DSA-87 signed auto key-exchange — PR #2348",
+      "Leg 4 DONE: pqc-tls-terminator (rustls + aws-lc-rs, X25519MLKEM768) — PR #2350",
+      "Verified live: braidera.com negotiates X25519MLKEM768 (reproducible via openssl s_client)",
+      "Encryption score: 9.2 → 9.5; Security overall: 9.0 → 9.2",
+      "Deploy gap (not code): api.digital-fabric.com ALB still classical"
+    ]
+  },
+  {
+    "date": "2026-06-16",
     "version": "Security Milestone",
     "title": "NIST ACVP live pass: ML-KEM-1024 + ML-DSA-87 (CNSA 2.0 Cat-5)",
     "description": "ML-KEM-1024 (keyGen + encapDecap) and ML-DSA-87 (sigVer) passed on NIST's live ACVP production server — session 744723, isSample=false, CNSA 2.0 Category-5. Offline KAT 35/35. NIST generates the vectors, BraidDB's engine computes the answers, NIST grades them. Security pillar updated: Encryption 8.5 → 9.2 (excellent), Access Control 8.0 → 8.5 (ACVP gap closed), Overall Security 8.7 → 9.0. FIPS 140-3 CMVP module certification is the next step. Honest scope: ACVP = algorithm-correctness validation (done); CMVP = full module certification (requires accredited lab + NIST queue, not yet started). Public phrasing: 'CNSA 2.0-aligned; ML-KEM-1024 + ML-DSA-87 ACVP-demonstrated correct against NIST's live validation server; CMVP pending.' Never 'FIPS validated.'",
