@@ -1,6 +1,6 @@
 {
   "slug": "cbac",
-  "name": "CBAC (6-State Governance Circuit Breaker)",
+  "name": "CBAC (Context-Aware Access Control)",
   "category": "Security & Governance",
   "status": "implemented",
   "overview": "CBAC is a 6-state governance circuit breaker that controls all data access transitions using Compare-And-Swap (CAS) semantics. Unlike traditional RBAC which filters data after loading it into memory, CBAC determines whether a page can even be decrypted \u2014 access control is enforced at the key derivation layer, making unauthorized access mathematically impossible rather than policy-filtered. 43 tests including 23 adversarial gym scenarios verify these guarantees under attack.",
@@ -40,7 +40,7 @@
     }
   ],
   "comparisons": {
-    "narrative": "Traditional databases enforce access control by loading data first, then filtering. TrustDB enforces access at the key derivation layer \u2014 if you don't have the right clearance + CBAC state, you can't derive the decryption key. The data never enters memory.",
+    "narrative": "Traditional databases enforce access control by loading data first, then filtering. BraidDB enforces access at the key derivation layer \u2014 if you don't have the right clearance + CBAC state, you can't derive the decryption key. The data never enters memory.",
     "competitors": [
       { "system": "PostgreSQL RLS", "approach": "Row-Level Security policies filter rows after loading from disk", "limitation": "Data is in memory before filtering \u2014 side-channel attacks possible" },
       { "system": "Neo4j Enterprise", "approach": "Sub-graph access control via property rules", "limitation": "Policy-based, not cryptographic; admin can bypass" },
@@ -49,10 +49,10 @@
     ]
   },
   "evidence": [
-    { "label": "CBAC Module (8 files)", "path": "trustdb/src/cbac/" },
-    { "label": "Clearance Boundary Gym", "path": "trustdb/tests/gym_g01_clearance_boundary.rs" },
-    { "label": "CBAC Adversarial Gym", "path": "trustdb/tests/gym_g02_cbac_adversarial.rs" },
-    { "label": "RDKC Key Derivation", "path": "trustdb/src/rdkc/" }
+    { "label": "CBAC Module (8 files)", "path": "BraidDB/src/cbac/" },
+    { "label": "Clearance Boundary Gym", "path": "BraidDB/tests/gym_g01_clearance_boundary.rs" },
+    { "label": "CBAC Adversarial Gym", "path": "BraidDB/tests/gym_g02_cbac_adversarial.rs" },
+    { "label": "RDKC Key Derivation", "path": "BraidDB/src/rdkc/" }
   ],
   "relatedFeatures": ["rdkc", "rewg", "eacb-frost", "post-quantum-keys"],
   "pillarsAffected": ["security", "reliability"]

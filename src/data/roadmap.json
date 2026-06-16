@@ -57,7 +57,7 @@
           ]
         },
         {
-          "title": "CBAC (Confidence-Based Access Control)",
+          "title": "CBAC (Context-Aware Access Control)",
           "status": "complete",
           "priority": "high",
           "description": "Shipped. 6-state governance circuit breaker with CAS semantics (141 source tests, CodeGraph-canonical). REWG graph-derived entitlements wired (27 tests). EACB threshold signatures (21 tests). RDKC governance-bound cryptographic access control (95 source / 149 total tests). 321 adversarial gym tests across 28 files. ML-DSA-87 NIST ACVP-validated (session 744723, CNSA 2.0 Cat-5).",

@@ -11,7 +11,7 @@
       "status": "strong",
       "benchmarks": [
         {
-          "name": "CBAC (6-State Governance Circuit Breaker)",
+          "name": "CBAC (Context-Aware Access Control)",
           "value": "Implemented \u2014 6 states, CAS semantics, 99 unit tests + 20 integration tests",
           "target": "Implemented",
           "met": true,
