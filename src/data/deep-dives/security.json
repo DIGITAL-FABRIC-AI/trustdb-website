@@ -85,8 +85,8 @@
         { "label": "Gym: Pre-Redaction Leakage", "path": "BraidDB/tests/gym_p01_pre_redaction_leakage.rs" }
       ],
       "history": [
-        { "date": "2026-06-16", "value": "8.5", "note": "ML-DSA-87 NIST ACVP live pass (session 744723, CNSA 2.0 Cat-5). ACVP gap closed; CMVP module submission is next." },
-        { "date": "2026-04-06", "value": "8.0", "note": "141 CBAC, 92 RDKC, 21 EACB, 352 gym functions across 28 files. 25,343 security LOC. 94 modules. Gap at time: ML-DSA-87, FIPS ACVP (both now closed)." }
+        { "date": "2026-06-16", "value": "8.5", "note": "ML-DSA-87 NIST ACVP live pass (session 744723, CNSA 2.0 Cat-5). ACVP gap closed." },
+        { "date": "2026-04-06", "value": "8.0", "note": "141 CBAC, 92 RDKC, 21 EACB, 352 gym functions across 28 files. 25,343 security LOC. 94 modules." }
       ]
     },
     {
