@@ -1,4 +1,4 @@
-import { ArrowRight, Boxes, CircleDot, Database, GitBranch, Layers3, LockKeyhole, Network, Orbit, ShieldCheck, Sparkles, Workflow } from 'lucide-react'
+import { ArrowRight, Boxes, CircleDot, Database, GitBranch, Layers3, LockKeyhole, Network, ShieldCheck, Sparkles, Workflow } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const views = [
