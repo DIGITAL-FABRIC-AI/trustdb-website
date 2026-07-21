@@ -1,4 +1,4 @@
-import { ArrowRight, Atom, BrainCircuit, Check, ChevronRight, Database, Eye, FlaskConical, LockKeyhole, Network, Orbit, Sparkles, Target, Workflow, Zap } from 'lucide-react'
+import { ArrowRight, Atom, Check, ChevronRight, Database, Eye, FlaskConical, LockKeyhole, Network, Orbit, Sparkles, Target, Workflow, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const proof = [
