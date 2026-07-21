@@ -1,4 +1,4 @@
-import { ArrowRight, Atom, Boxes, BrainCircuit, Check, CircleDot, Eye, GitBranch, Layers3, Network, ShieldCheck, Sparkles, Target, Workflow, Zap } from 'lucide-react'
+import { ArrowRight, Atom, Boxes, BrainCircuit, CircleDot, Eye, GitBranch, Layers3, Network, ShieldCheck, Target, Workflow, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const capabilities = [
