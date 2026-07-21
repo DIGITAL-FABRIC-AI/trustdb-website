@@ -1,4 +1,4 @@
-import { ArrowRight, Check, ChevronRight, CircleDot, FlaskConical, GitBranch, Layers3, Search, ShieldCheck, Sparkles, Target, Workflow } from 'lucide-react'
+import { ArrowRight, Check, CircleDot, FlaskConical, GitBranch, Layers3, Search, ShieldCheck, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const steps = [
