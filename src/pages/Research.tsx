@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, ExternalLink, FileText, FlaskConical, Network, Orbit, PenLine } from 'lucide-react'
+import { ArrowRight, BookOpen, ExternalLink, FlaskConical, Network, PenLine } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const articles = [
